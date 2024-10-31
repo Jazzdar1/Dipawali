@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Greeting for Naveen Sir</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Styling for the gradient background */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Main container styling */
+    .main {
+      text-align: center;
+      color: #ffffff;
+      z-index: 10;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Greeting text styling */
+    .greeting {
+      font-family: 'Dancing Script', cursive;
+      font-size: 80px;
+      font-weight: 700;
+      color: #fffc;
+      text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+      margin: 0;
+      animation: fadeInSlideDown 1.5s ease-out;
+    }
+
+    /* Animation for greeting */
+    @keyframes fadeInSlideDown {
+      0% { opacity: 0; transform: translateY(-30px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Styling for the personalized message */
+    .wishDiv {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 24px;
+      color: #e0f7fa;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+      margin-top: 10px;
+    }
+
+    .name {
+      font-size: 26px;
+      color: #fffc;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 15px;
+    }
+
+    /* Heart icon styling */
+    .hearts {
+      font-size: 30px;
+      color: #ff5c5c;
+      animation: heartBeat 1s infinite;
+    }
+
+    /* Heart beat animation */
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    /* Glowing effect for the bubbles */
+    .bg-bubbles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-bubbles li {
+      position: absolute;
+      list-style: none;
+      width: 40px;
+      height: 40px;
+      background-color: rgba(255, 255, 255, 0.2);
+      bottom: -160px;
+      animation: floatUp 15s infinite ease-in-out;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Assign different positions and sizes for bubbles */
+    .bg-bubbles li:nth-child(1) { left: 10%; width: 60px; height: 60px; animation-duration: 17s; }
+    .bg-bubbles li:nth-child(2) { left: 25%; width: 80px; height: 80px; animation-duration: 12s; }
+    .bg-bubbles li:nth-child(3) { left: 40%; width: 100px; height: 100px; animation-duration: 20s; }
+    .bg-bubbles li:nth-child(4) { left: 60%; width: 50px; height: 50px; animation-duration: 19s; }
+    .bg-bubbles li:nth-child(5) { left: 75%; width: 90px; height: 90px; animation-duration: 14s; }
+    .bg-bubbles li:nth-child(6) { left: 90%; width: 40px; height: 40px; animation-duration: 22s; }
+
+    /* Float animation for bubbles */
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-800px) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main">
+    <div class="greeting">Hello Naveen Sir!</div>
+    <div class="wishDiv">
+      Sending warm wishes and endless joy to you and your family!<br>
+      <span class="hearts">❤️❤️❤️</span><br>
+      <span class="name">— Best wishs from : Dar</span>
+    </div>
+  </div>
+  <ul class="bg-bubbles">
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+  </ul>
+</body>
+</html>
