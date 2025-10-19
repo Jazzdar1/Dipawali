@@ -221,13 +221,11 @@
             pointer-events: none;
         }
 
-        /* --- THIS IS THE FIX --- */
         .balloon.popped {
             animation: none; /* Stop floating animation */
             background: transparent; /* Make balloon body invisible */
             box-shadow: none; /* Remove balloon shadow */
             pointer-events: none; /* Can't click again while burst */
-            /* We remove width, height, and opacity to allow the child text to be visible */
         }
 
         .balloon.popped::before,
@@ -237,13 +235,28 @@
 
         .balloon.popped .burst-text {
             display: block; /* Show the text */
-            animation: showBurstText 1.5s ease-out forwards;
+            /* === FIX 1: Changed 1.5s to 3s === */
+            animation: showBurstText 3s ease-out forwards;
         }
 
+        /* === FIX 2: Added 80% keyframe to hold text === */
         @keyframes showBurstText {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -100px) scale(1); }
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.5); 
+            }
+            30% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1.1); 
+            }
+            80% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translate(-50%, -100px) scale(1); 
+            }
         }
     </style>
 </head>
@@ -369,14 +382,14 @@
                     }
                     clickedBalloon.classList.add('popped');
                     
-                    // After the burst text animation, reset the balloon
+                    /* === FIX 3: Changed 1500 to 3000ms === */
                     setTimeout(() => {
                         clickedBalloon.classList.remove('popped');
                         // Reset animation to make it float again
                         clickedBalloon.style.animation = 'none';
                         void clickedBalloon.offsetWidth; // Trigger reflow
                         clickedBalloon.style.animation = null; 
-                    }, 1500); // Matches 'showBurstText' animation duration
+                    }, 3000); // Matches 'showBurstText' animation duration
                 });
             });
         })();
