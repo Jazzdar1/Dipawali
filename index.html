@@ -145,3 +145,388 @@
   </ul>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Deepawali!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Dancing+Script:wght@700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Basic Setup */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Merriweather', serif;
+            background-color: #1a1a2e; /* Dark blue night sky */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Hide scrollbars */
+        }
+
+        /* Canvas for JS Sparkles (behind everything) */
+        #sparkles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* The Greeting Card (Rebuilt in HTML/CSS) */
+        .greeting-card {
+            position: relative;
+            z-index: 2; /* In front of the canvas */
+            background: #2c3e50; /* Dark card background */
+            color: #ecf0f1;
+            padding: 30px 50px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            
+            /* Decoration from all sides */
+            border: 5px solid #f1c40f; /* Gold border */
+            box-shadow: 0 0 25px #f1c40f, /* Outer glow */
+                        inset 0 0 20px #f39c12; /* Inner glow */
+        }
+        
+        /* Message Styling */
+        .message-content h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            color: #f1c40f;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            margin: 0;
+        }
+
+        /* Hindi Greeting */
+        .hindi-greeting {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #e67e22; /* Saffron */
+            margin: 5px 0 10px 0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #bdc3c7;
+            margin: 15px 0;
+        }
+
+        .message-content .sender {
+            font-size: 1.2rem;
+            font-style: italic;
+            text-align: right;
+            margin-top: 20px;
+            color: #e67e22;
+        }
+
+        /* --- Small Border Diyas --- */
+        .diya {
+            position: absolute;
+            width: 50px;
+            height: 25px;
+            background: #d35400; /* Terracotta */
+            border-radius: 50%;
+            clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+            z-index: 3; 
+        }
+        .diya .flame {
+            position: absolute;
+            width: 16px;
+            height: 28px;
+            background: #f1c40f;
+            left: 50%;
+            bottom: 8px;
+            transform: translateX(-50%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 0 0 8px #f1c40f, 0 0 15px #f39c12, 0 0 20px #e67e22;
+            animation: flicker 1s ease-in-out infinite alternate;
+        }
+
+        /* Positioning the small diyas */
+        .diya-top-left { top: -13px; left: -13px; }
+        .diya-top-right { top: -13px; right: -13px; }
+        .diya-bottom-left { bottom: -13px; left: -13px; }
+        .diya-bottom-right { bottom: -13px; right: -13px; }
+
+        /* --- NEW: Big Burning Diya --- */
+        .diya-big {
+            position: relative;
+            width: 100px;
+            height: 50px;
+            background: #d35400;
+            border-radius: 50%;
+            clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+            margin: 15px auto 5px; /* Centered inside card */
+            border: 3px solid #f39c12;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
+        }
+        .flame-big {
+            position: absolute;
+            width: 30px;
+            height: 60px;
+            background: #f1c40f;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 0 0 15px #f1c40f, 0 0 25px #f39c12, 0 0 40px #e67e22;
+            animation: flicker-big 1.2s ease-in-out infinite alternate;
+        }
+
+        /* Flicker animations */
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1, 1); opacity: 1; }
+            50% { transform: translateX(-55%) scale(1.1, 0.9); opacity: 0.8; }
+            100% { transform: translateX(-45%) scale(0.95, 1.05); opacity: 1; }
+        }
+        @keyframes flicker-big {
+            0% { transform: translateX(-50%) scale(1, 1); opacity: 1; }
+            50% { transform: translateX(-52%) scale(1.1, 0.9); opacity: 0.8; }
+            100% { transform: translateX(-48%) scale(0.95, 1.05); opacity: 1; }
+        }
+
+        /* --- Balloon Styling --- */
+        .balloon {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background-color: #e74c3c; /* Red */
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            bottom: -100px; /* Start off-screen */
+            z-index: 3; /* Above the card */
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+            animation: floatBalloon 15s ease-in-out infinite;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            user-select: none;
+        }
+
+        .balloon::before { /* String knot */
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: #c0392b;
+            border-radius: 50%;
+            z-index: 1;
+            transition: all 0.2s ease-out;
+        }
+
+        .balloon::after { /* String */
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 30px;
+            background-color: #7f8c8d;
+            z-index: 0;
+            transition: all 0.2s ease-out;
+        }
+        
+        /* Balloon Colors */
+        .balloon:nth-of-type(1) { left: 10%; background-color: #e74c3c; animation-delay: 0s; } /* Red */
+        .balloon:nth-of-type(2) { left: 25%; background-color: #3498db; animation-delay: 3s; } /* Blue */
+        .balloon:nth-of-type(3) { left: 40%; background-color: #f1c40f; animation-delay: 6s; } /* Gold */
+        .balloon:nth-of-type(4) { left: 55%; background-color: #9b59b6; animation-delay: 9s; } /* Purple */
+        .balloon:nth-of-type(5) { left: 70%; background-color: #e67e22; animation-delay: 12s; } /* Orange */
+
+        @keyframes floatBalloon {
+            0% { bottom: -100px; transform: translateX(0px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { bottom: 120%; transform: translateX(50px) rotate(10deg); opacity: 0; }
+        }
+
+        /* --- Balloon Burst Effect --- */
+        .balloon .burst-text {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* --- THIS IS THE FIX --- */
+        .balloon.popped {
+            animation: none; /* Stop floating animation */
+            background: transparent; /* Make balloon body invisible */
+            box-shadow: none; /* Remove balloon shadow */
+            pointer-events: none; /* Can't click again while burst */
+            /* We remove width, height, and opacity to allow the child text to be visible */
+        }
+
+        .balloon.popped::before,
+        .balloon.popped::after {
+            display: none; /* Hide string and knot */
+        }
+
+        .balloon.popped .burst-text {
+            display: block; /* Show the text */
+            animation: showBurstText 1.5s ease-out forwards;
+        }
+
+        @keyframes showBurstText {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -100px) scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="sparkles-canvas"></canvas>
+
+    <div class="balloon">
+        <span class="burst-text">Happy Deepawali Naveen Sir</span>
+    </div>
+    <div class="balloon">
+        <span class="burst-text">Happy Deepawali Naveen Sir</span>
+    </div>
+    <div class="balloon">
+        <span class="burst-text">Happy Deepawali Naveen Sir</span>
+    </div>
+    <div class="balloon">
+        <span class="burst-text">Happy Deepawali Naveen Sir</span>
+    </div>
+    <div class="balloon">
+        <span class="burst-text">Happy Deepawali Naveen Sir</span>
+    </div>
+    
+    <div class="greeting-card">
+        
+        <div class="diya diya-top-left"><div class="flame"></div></div>
+        <div class="diya diya-top-right"><div class="flame"></div></div>
+        <div class="diya diya-bottom-left"><div class="flame"></div></div>
+        <div class="diya diya-bottom-right"><div class="flame"></div></div>
+
+        <div class="diya-big">
+            <div class="flame-big"></div>
+        </div>
+
+        <div class="message-content">
+            <h1>Happy Deepawali!</h1>
+            <p class="hindi-greeting">शुभ दीपावली!</p>
+            <p>May the divine light of the diyas fill your life with peace, prosperity, and happiness.</p>
+            <p class="sender">- Ajaz Ahmad dar</p>
+        </div>
+    </div>
+    
+    <script>
+        // --- JavaScript for Sparkle Background ---
+        (function() {
+            const canvas = document.getElementById('sparkles-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let particlesArray = [];
+            const particleCount = 100;
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 1;
+                    this.speedX = (Math.random()*1 - 0.5) * 0.5;
+                    this.speedY = (Math.random()*1 - 0.5) * 0.5;
+                    this.color = ['#f1c40f', '#e67e22', '#f39c12', '#ffffff'][Math.floor(Math.random()*4)];
+                    this.opacity = Math.random();
+                    this.opacityDirection = 1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.opacity;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.opacityDirection === 1) {
+                        this.opacity += 0.01;
+                        if (this.opacity >= 1) this.opacityDirection = -1;
+                    } else {
+                        this.opacity -= 0.01;
+                        if (this.opacity <= 0) {
+                            this.opacityDirection = 1;
+                            this.x = Math.random() * canvas.width;
+                            this.y = Math.random() * canvas.height;
+                        }
+                    }
+                    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                    }
+                    this.draw();
+                }
+            }
+            function init() {
+                particlesArray = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particlesArray.push(new Particle());
+                }
+            }
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1;
+                for (let i = 0; i < particlesArray.length; i++) {
+                    particlesArray[i].update();
+                }
+                requestAnimationFrame(animate);
+            }
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                init();
+            });
+            init();
+            animate();
+        })();
+
+        // --- JavaScript for Balloon Burst ---
+        (function() {
+            const balloons = document.querySelectorAll('.balloon');
+            balloons.forEach(balloon => {
+                balloon.addEventListener('click', (event) => {
+                    const clickedBalloon = event.currentTarget;
+                    if (clickedBalloon.classList.contains('popped')) {
+                        return;
+                    }
+                    clickedBalloon.classList.add('popped');
+                    
+                    // After the burst text animation, reset the balloon
+                    setTimeout(() => {
+                        clickedBalloon.classList.remove('popped');
+                        // Reset animation to make it float again
+                        clickedBalloon.style.animation = 'none';
+                        void clickedBalloon.offsetWidth; // Trigger reflow
+                        clickedBalloon.style.animation = null; 
+                    }, 1500); // Matches 'showBurstText' animation duration
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
