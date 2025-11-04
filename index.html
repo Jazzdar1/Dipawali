@@ -3,396 +3,1338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Deepawali!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Dancing+Script:wght@700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+    <title>Modern PDF Toolkit</title>
+    
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v4.1.1/dist/tesseract.min.js"></script>
+    <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     
     <style>
-        /* Basic Setup */
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Merriweather', serif;
-            background-color: #1a1a2e; /* Dark blue night sky */
+        :root {
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --color-primary: #007bff;
+            --color-primary-dark: #0056b3;
+            --color-light: #ffffff;
+            --color-dark: #343a40;
+            --color-gray-100: #f8f9fa;
+            --color-gray-300: #dee2e6;
+            --color-gray-700: #495057;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-warning: #ffc107;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --border-radius: 8px;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-gray-100);
+            color: var(--color-dark);
             display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden; /* Hide scrollbars */
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* Canvas for JS Sparkles (behind everything) */
-        #sparkles-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .app-layout { display: flex; width: 100%; height: 100%; }
+
+        /* === Sidebar Navigation === */
+        .sidebar {
+            width: 260px;
+            background: var(--color-light);
+            border-right: 1px solid var(--color-gray-300);
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--color-gray-300);
+            margin-bottom: 20px;
+        }
+        .sidebar-nav-group { margin-bottom: 20px; }
+        .sidebar-nav-group h3 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--color-gray-700);
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+        .sidebar-nav button {
+            display: block;
             width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* The Greeting Card (Rebuilt in HTML/CSS) */
-        .greeting-card {
-            position: relative;
-            z-index: 2; /* In front of the canvas */
-            background: #2c3e50; /* Dark card background */
-            color: #ecf0f1;
-            padding: 30px 50px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 500px;
-            
-            /* Decoration from all sides */
-            border: 5px solid #f1c40f; /* Gold border */
-            box-shadow: 0 0 25px #f1c40f, /* Outer glow */
-                        inset 0 0 20px #f39c12; /* Inner glow */
-        }
-        
-        /* Message Styling */
-        .message-content h1 {
-            font-family: 'Dancing Script', cursive;
-            font-size: 3.5rem;
-            color: #f1c40f;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-            margin: 0;
-        }
-
-        /* Hindi Greeting */
-        .hindi-greeting {
-            font-family: 'Noto Sans Devanagari', sans-serif;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #e67e22; /* Saffron */
-            margin: 5px 0 10px 0;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .message-content p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            color: #bdc3c7;
-            margin: 15px 0;
-        }
-
-        .message-content .sender {
-            font-size: 1.2rem;
-            font-style: italic;
-            text-align: right;
-            margin-top: 20px;
-            color: #e67e22;
-        }
-
-        /* --- Small Border Diyas --- */
-        .diya {
-            position: absolute;
-            width: 50px;
-            height: 25px;
-            background: #d35400; /* Terracotta */
-            border-radius: 50%;
-            clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
-            z-index: 3; 
-        }
-        .diya .flame {
-            position: absolute;
-            width: 16px;
-            height: 28px;
-            background: #f1c40f;
-            left: 50%;
-            bottom: 8px;
-            transform: translateX(-50%);
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            box-shadow: 0 0 8px #f1c40f, 0 0 15px #f39c12, 0 0 20px #e67e22;
-            animation: flicker 1s ease-in-out infinite alternate;
-        }
-
-        /* Positioning the small diyas */
-        .diya-top-left { top: -13px; left: -13px; }
-        .diya-top-right { top: -13px; right: -13px; }
-        .diya-bottom-left { bottom: -13px; left: -13px; }
-        .diya-bottom-right { bottom: -13px; right: -13px; }
-
-        /* --- NEW: Big Burning Diya --- */
-        .diya-big {
-            position: relative;
-            width: 100px;
-            height: 50px;
-            background: #d35400;
-            border-radius: 50%;
-            clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
-            margin: 15px auto 5px; /* Centered inside card */
-            border: 3px solid #f39c12;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
-        }
-        .flame-big {
-            position: absolute;
-            width: 30px;
-            height: 60px;
-            background: #f1c40f;
-            left: 50%;
-            bottom: 18px;
-            transform: translateX(-50%);
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            box-shadow: 0 0 15px #f1c40f, 0 0 25px #f39c12, 0 0 40px #e67e22;
-            animation: flicker-big 1.2s ease-in-out infinite alternate;
-        }
-
-        /* Flicker animations */
-        @keyframes flicker {
-            0% { transform: translateX(-50%) scale(1, 1); opacity: 1; }
-            50% { transform: translateX(-55%) scale(1.1, 0.9); opacity: 0.8; }
-            100% { transform: translateX(-45%) scale(0.95, 1.05); opacity: 1; }
-        }
-        @keyframes flicker-big {
-            0% { transform: translateX(-50%) scale(1, 1); opacity: 1; }
-            50% { transform: translateX(-52%) scale(1.1, 0.9); opacity: 0.8; }
-            100% { transform: translateX(-48%) scale(0.95, 1.05); opacity: 1; }
-        }
-
-        /* --- Balloon Styling --- */
-        .balloon {
-            position: absolute;
-            width: 60px;
-            height: 80px;
-            background-color: #e74c3c; /* Red */
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            bottom: -100px; /* Start off-screen */
-            z-index: 3; /* Above the card */
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
-            animation: floatBalloon 15s ease-in-out infinite;
+            text-align: left;
+            padding: 12px 15px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease-out;
-            user-select: none;
+            font-size: 1rem;
+            color: var(--color-dark);
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .sidebar-nav button:hover { background: var(--color-gray-100); }
+        .sidebar-nav button.active {
+            background: var(--color-primary);
+            color: var(--color-light);
+            font-weight: 500;
         }
 
-        .balloon::before { /* String knot */
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 8px;
-            height: 8px;
-            background-color: #c0392b;
-            border-radius: 50%;
-            z-index: 1;
-            transition: all 0.2s ease-out;
-        }
-
-        .balloon::after { /* String */
-            content: '';
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 1px;
-            height: 30px;
-            background-color: #7f8c8d;
-            z-index: 0;
-            transition: all 0.2s ease-out;
+        /* === Main Content Area === */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
         }
         
-        /* Balloon Colors */
-        .balloon:nth-of-type(1) { left: 10%; background-color: #e74c3c; animation-delay: 0s; } /* Red */
-        .balloon:nth-of-type(2) { left: 25%; background-color: #3498db; animation-delay: 3s; } /* Blue */
-        .balloon:nth-of-type(3) { left: 40%; background-color: #f1c40f; animation-delay: 6s; } /* Gold */
-        .balloon:nth-of-type(4) { left: 55%; background-color: #9b59b6; animation-delay: 9s; } /* Purple */
-        .balloon:nth-of-type(5) { left: 70%; background-color: #e67e22; animation-delay: 12s; } /* Orange */
+        .tool-section { display: none; max-width: 900px; margin: 0 auto; }
+        .tool-section.active { display: block; }
+        
+        .tool-header { margin-bottom: 25px; }
+        .tool-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 5px; }
+        .tool-header p { font-size: 1.1rem; color: var(--color-gray-700); }
 
-        @keyframes floatBalloon {
-            0% { bottom: -100px; transform: translateX(0px) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { bottom: 120%; transform: translateX(50px) rotate(10deg); opacity: 0; }
+        .box {
+            background: var(--color-light);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            align-items: center;
+        }
+        .form-grid label { font-weight: 500; text-align: right; }
+        .form-grid .span-2 { grid-column: 1 / -1; }
+
+        input[type="file"], textarea, input[type="number"], input[type="text"], select, button {
+            font-family: var(--font-family);
+            font-size: 1rem;
+        }
+        
+        input[type="number"], input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--color-gray-300);
+            border-radius: 6px;
+            background: var(--color-gray-100);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.2);
+            background: var(--color-light);
+        }
+        
+        textarea { min-height: 100px; resize: vertical; }
+        
+        .upload-area {
+            border: 2px dashed var(--color-gray-300);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            text-align: center;
+            background: var(--color-gray-100);
+            transition: background 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .upload-area:hover { background: #e9ecef; border-color: var(--color-primary-dark); }
+        .upload-area input[type="file"] { display: none; }
+        .upload-area p { font-size: 1.1rem; font-weight: 500; color: var(--color-gray-700); }
+        
+        button {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        button:hover { background-color: var(--color-primary-dark); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .action-bar {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-gray-300);
+            display: flex;
+            gap: 10px;
+        }
+        .action-bar button.secondary, button.secondary {
+            background-color: var(--color-gray-700);
+        }
+        .action-bar button.secondary:hover, button.secondary:hover {
+            background-color: var(--color-dark);
         }
 
-        /* --- Balloon Burst Effect --- */
-        .balloon .burst-text {
-            display: none; /* Hidden by default */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffffff;
-            font-family: 'Dancing Script', cursive;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #000;
-            white-space: nowrap;
-            z-index: 10;
-            pointer-events: none;
+        #message {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            display: none;
+            font-weight: 500;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+
+        .page-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--color-gray-300);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            background: var(--color-gray-100);
+        }
+        .page-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--color-light);
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--color-gray-300);
+            cursor: pointer;
         }
 
-        .balloon.popped {
-            animation: none; /* Stop floating animation */
-            background: transparent; /* Make balloon body invisible */
-            box-shadow: none; /* Remove balloon shadow */
-            pointer-events: none; /* Can't click again while burst */
+        #preview, #analysisOutput, #extractedText, #convertedOutput, #txtOutput, #ocrOutput {
+            margin-top: 20px;
+            border: 1px solid var(--color-gray-300);
+            padding: 15px;
+            min-height: 300px;
+            overflow: auto;
+            background: var(--color-light);
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+            border-radius: var(--border-radius);
         }
-
-        .balloon.popped::before,
-        .balloon.popped::after {
-            display: none; /* Hide string and knot */
-        }
-
-        .balloon.popped .burst-text {
-            display: block; /* Show the text */
-            /* === FIX 1: Changed 1.5s to 3s === */
-            animation: showBurstText 3s ease-out forwards;
-        }
-
-        /* === FIX 2: Added 80% keyframe to hold text === */
-        @keyframes showBurstText {
-            0% { 
-                opacity: 0; 
-                transform: translate(-50%, -50%) scale(0.5); 
-            }
-            30% { 
-                opacity: 1; 
-                transform: translate(-50%, -50%) scale(1.1); 
-            }
-            80% { 
-                opacity: 1; 
-                transform: translate(-50%, -50%) scale(1); 
-            }
-            100% { 
-                opacity: 0; 
-                transform: translate(-50%, -100px) scale(1); 
-            }
+        #preview { background: var(--color-gray-100); white-space: normal; }
+        #preview canvas {
+            max-width: 100%;
+            height: auto;
+            margin: 10px auto;
+            display: block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
 
-    <canvas id="sparkles-canvas"></canvas>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">PDF Toolkit</div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-group">
+                    <h3>Organize</h3>
+                    <button data-tool="merge">Merge PDFs</button>
+                    <button data-tool="split">Split PDF</button>
+                    <button data-tool="rotate">Rotate Pages</button>
+                    <button data-tool="compress">Compress PDF</button>
+                </div>
+                <div class="sidebar-nav-group">
+                    <h3>Modify</h3>
+                    <button data-tool="edit" class="active">Add Text/Image</button>
+                    <button data-tool="watermark">Add Watermark</button>
+                    <button data-tool="forms">Add Form Field</button>
+                </div>
+                <div class="sidebar-nav-group">
+                    <h3>Extract & Convert</h3>
+                    <button data-tool="ocr">OCR Extract Text</button>
+                    <button data-tool="textedit">Extract & Replace Text</button>
+                    <button data-tool="analyze">Analyze PDF</button>
+                    <button data-tool="pdf-to-docx">PDF to DOCX</button>
+                    <button data-tool="pdf-to-txt">PDF to TXT</button>
+                    <button data-tool="docx-to-pdf">DOCX to PDF</button>
+                </div>
+            </nav>
+        </aside>
 
-    <div class="balloon">
-        <span class="burst-text">Happy Deepawali Naveen Sir</span>
-    </div>
-    <div class="balloon">
-        <span class="burst-text">Happy Deepawali Naveen Sir</span>
-    </div>
-    <div class="balloon">
-        <span class="burst-text">Happy Deepawali Naveen Sir</span>
-    </div>
-    <div class="balloon">
-        <span class="burst-text">Happy Deepawali Naveen Sir</span>
-    </div>
-    <div class="balloon">
-        <span class="burst-text">Happy Deepawali Naveen Sir</span>
-    </div>
-    
-    <div class="greeting-card">
-        
-        <div class="diya diya-top-left"><div class="flame"></div></div>
-        <div class="diya diya-top-right"><div class="flame"></div></div>
-        <div class="diya diya-bottom-left"><div class="flame"></div></div>
-        <div class="diya diya-bottom-right"><div class="flame"></div></div>
+        <main class="main-content">
+            
+            <div id="edit" class="tool-section active">
+                <div class="tool-header">
+                    <h1>Add Text or Image</h1>
+                    <p>Overlay new text or images onto a PDF page.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="editUpload">
+                        <input type="file" id="editUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <div class="form-grid">
+                        <label for="editText">Text to add:</label>
+                        <textarea id="editText" rows="2" placeholder="Enter text..."></textarea>
+                        
+                        <label for="editX">Text X Position:</label>
+                        <input type="number" id="editX" value="100" />
+                        
+                        <label for="editY">Text Y Position:</label>
+                        <input type="number" id="editY" value="100" />
+                        
+                        <label for="editFontSize">Text Font Size:</label>
+                        <input type="number" id="editFontSize" value="12" min="1" max="72" />
+                        
+                        <label for="editPage">Page (1-based):</label>
+                        <input type="number" id="editPage" value="1" min="1" />
+                    </div>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="editImage" style="padding: 20px">
+                        <input type="file" id="editImage" accept="image/*" />
+                        <p>Click or Drop Image to add (optional)</p>
+                    </label>
+                     <div class="form-grid">
+                        <label for="imageX">Image X Position:</label>
+                        <input type="number" id="imageX" value="200" />
+                        
+                        <label for="imageY">Image Y Position:</label>
+                        <input type="number" id="imageY" value="200" />
+                        
+                        <label for="imageScale">Image Scale:</label>
+                        <input type="number" id="imageScale" value="0.5" min="0.1" max="1.0" step="0.1" />
+                     </div>
+                </div>
+                <button id="btnPerformEdit">Apply Edits</button>
+            </div>
+            
+            <div id="merge" class="tool-section">
+                <div class="tool-header">
+                    <h1>Merge PDFs</h1>
+                    <p>Combine multiple PDF files into one single document.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="mergeUpload">
+                        <input type="file" id="mergeUpload" accept=".pdf" multiple />
+                        <p>Click or Drop 2+ PDFs here</p>
+                    </label>
+                    <button id="btnPerformMerge">Merge PDFs</button>
+                </div>
+            </div>
+            
+            <div id="split" class="tool-section">
+                <div class="tool-header">
+                    <h1>Split PDF</h1>
+                    <p>Select pages to extract into new PDF files.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="splitUpload">
+                        <input type="file" id="splitUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <h3>Select Pages to Extract:</h3>
+                    <div class="page-selector" id="pageList"></div>
+                    <br>
+                    <button id="btnPerformSplit">Split Selected Pages</button>
+                </div>
+            </div>
 
-        <div class="diya-big">
-            <div class="flame-big"></div>
-        </div>
+            <div id="rotate" class="tool-section">
+                <div class="tool-header">
+                    <h1>Rotate Pages</h1>
+                    <p>Rotate a specific page in your PDF.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="rotateUpload">
+                        <input type="file" id="rotateUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <div class="form-grid">
+                        <label for="rotatePage">Page (1-based):</label>
+                        <input type="number" id="rotatePage" value="1" min="1" />
+                        
+                        <label for="rotateAngle">Rotation:</label>
+                        <select id="rotateAngle">
+                            <option value="90">90° Clockwise</option>
+                            <option value="180">180°</option>
+                            <option value="270">270° Clockwise</option>
+                        </select>
+                    </div>
+                    <br>
+                    <button id="btnPerformRotate">Rotate Page</button>
+                </div>
+            </div>
 
-        <div class="message-content">
-            <h1>Happy Deepawali!</h1>
-            <p class="hindi-greeting">शुभ दीपावली!</p>
-            <p>May the divine light of the diyas fill your life with peace, prosperity, and happiness.</p>
-            <p class="sender">- Ajaz Ahmad dar</p>
-        </div>
-    </div>
-    
-    <script>
-        // --- JavaScript for Sparkle Background ---
-        (function() {
-            const canvas = document.getElementById('sparkles-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            let particlesArray = [];
-            const particleCount = 100;
+            <div id="compress" class="tool-section">
+                <div class="tool-header">
+                    <h1>Compress PDF</h1>
+                    <p>Reduce file size (basic compression). May not work on all files.</p>
+                </div>
+                 <div class="box">
+                    <label class="upload-area" for="compressUpload">
+                        <input type="file" id="compressUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <div class="form-grid">
+                        <label for="compressLevel">Compression Level:</label>
+                        <select id="compressLevel">
+                            <option value="low">Low (fast)</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High (slower, smaller file)</option>
+                        </select>
+                    </div>
+                    <br>
+                    <button id="btnPerformCompress">Compress PDF</button>
+                </div>
+            </div>
+            
+            <div id="forms" class="tool-section">
+                <div class="tool-header">
+                    <h1>Add Form Field</h1>
+                    <p>Add a fillable text field to a PDF page.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="formsUpload">
+                        <input type="file" id="formsUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <div class="form-grid">
+                        <label for="formPage">Page (1-based):</label>
+                        <input type="number" id="formPage" value="1" min="1" />
+                        
+                        <label for="fieldName">Field Name:</label>
+                        <input type="text" id="fieldName" value="textField1" />
+                        
+                        <label for="fieldX">X Position:</label>
+                        <input type="number" id="fieldX" value="100" />
+                        
+                        <label for="fieldY">Y Position:</label>
+                        <input type="number" id="fieldY" value="100" />
+                        
+                        <label for="fieldWidth">Width:</label>
+                        <input type="number" id="fieldWidth" value="200" />
+                        
+                        <label for="fieldHeight">Height:</label>
+                        <input type="number" id="fieldHeight" value="20" />
+                    </div>
+                    <br>
+                    <button id="btnPerformAddForm">Add Text Field</button>
+                </div>
+            </div>
+            
+            <div id="watermark" class="tool-section">
+                <div class="tool-header">
+                    <h1>Add Watermark</h1>
+                    <p>Apply a text watermark to all pages of a PDF.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="watermarkUpload">
+                        <input type="file" id="watermarkUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <div class="form-grid">
+                        <label for="watermarkText">Watermark Text:</label>
+                        <input type="text" id="watermarkText" value="CONFIDENTIAL" />
+                        
+                        <label for="watermarkOpacity">Opacity (0-1):</label>
+                        <input type="number" id="watermarkOpacity" value="0.3" min="0" max="1" step="0.1" />
+                        
+                        <label for="watermarkFontSize">Font Size:</label>
+                        <input type="number" id="watermarkFontSize" value="48" min="1" max="100" />
 
-            class Particle {
-                constructor() {
-                    this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * canvas.height;
-                    this.size = Math.random() * 2 + 1;
-                    this.speedX = (Math.random()*1 - 0.5) * 0.5;
-                    this.speedY = (Math.random()*1 - 0.5) * 0.5;
-                    this.color = ['#f1c40f', '#e67e22', '#f39c12', '#ffffff'][Math.floor(Math.random()*4)];
-                    this.opacity = Math.random();
-                    this.opacityDirection = 1;
-                }
-                draw() {
-                    ctx.fillStyle = this.color;
-                    ctx.globalAlpha = this.opacity;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                update() {
-                    this.x += this.speedX;
-                    this.y += this.speedY;
-                    if (this.opacityDirection === 1) {
-                        this.opacity += 0.01;
-                        if (this.opacity >= 1) this.opacityDirection = -1;
-                    } else {
-                        this.opacity -= 0.01;
-                        if (this.opacity <= 0) {
-                            this.opacityDirection = 1;
-                            this.x = Math.random() * canvas.width;
-                            this.y = Math.random() * canvas.height;
-                        }
-                    }
-                    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-                        this.x = Math.random() * canvas.width;
-                        this.y = Math.random() * canvas.height;
-                    }
-                    this.draw();
-                }
-            }
-            function init() {
-                particlesArray = [];
-                for (let i = 0; i < particleCount; i++) {
-                    particlesArray.push(new Particle());
-                }
-            }
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.globalAlpha = 1;
-                for (let i = 0; i < particlesArray.length; i++) {
-                    particlesArray[i].update();
-                }
-                requestAnimationFrame(animate);
-            }
-            window.addEventListener('resize', () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                init();
-            });
-            init();
-            animate();
-        })();
-
-        // --- JavaScript for Balloon Burst ---
-        (function() {
-            const balloons = document.querySelectorAll('.balloon');
-            balloons.forEach(balloon => {
-                balloon.addEventListener('click', (event) => {
-                    const clickedBalloon = event.currentTarget;
-                    if (clickedBalloon.classList.contains('popped')) {
-                        return;
-                    }
-                    clickedBalloon.classList.add('popped');
+                        <label for="watermarkRotation">Rotation (°):</label>
+                        <input type="number" id="watermarkRotation" value="-45" min="-180" max="180" />
+                    </div>
+                    <br>
+                    <button id="btnPerformWatermark">Apply Watermark</button>
+                </div>
+            </div>
+            
+            <div id="ocr" class="tool-section">
+                <div class="tool-header">
+                    <h1>OCR Extract Text</h1>
+                    <p>Recognize and extract text from scanned PDFs (limits to 5 pages).</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="ocrUpload">
+                        <input type="file" id="ocrUpload" accept=".pdf" />
+                        <p>Click or Drop Scanned PDF here</p>
+                    </label>
+                    <button id="btnPerformOCR">Start OCR</button>
+                    <button id="downloadOcrBtn" disabled class="secondary">Download TXT</button>
+                </div>
+                <div id="progress"></div>
+                <div id="ocrOutput" style="display:none;"></div>
+            </div>
+            
+            <div id="analyze" class="tool-section">
+                <div class="tool-header">
+                    <h1>Analyze PDF</h1>
+                    <p>Extract metadata and raw text content from all pages.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="analyzeUpload">
+                        <input type="file" id="analyzeUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <button id="btnPerformAnalyze">Analyze PDF</button>
+                    <button id="downloadAnalysisBtn" disabled class="secondary">Download TXT</button>
+                </div>
+                <div id="analysisOutput" style="display:none;"></div>
+            </div>
+            
+            <div id="textedit" class="tool-section">
+                <div class="tool-header">
+                    <h1>Extract & Replace Text</h1>
+                    <p>Extracts text, lets you edit, then replaces it as one block.</p>
+                </div>
+                <div class="box">
+                    <div class="warning" style="padding:15px; border-radius:var(--border-radius); margin-bottom: 15px;">
+                        <strong>Important:</strong> This tool extracts all text, you edit it, and it places the *new* text block on page 1. It does NOT edit text in-place.
+                    </div>
+                    <label class="upload-area" for="texteditUpload">
+                        <input type="file" id="texteditUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <button id="btnExtractText">1. Extract Text</button>
+                    <textarea id="extractedText" placeholder="Extracted text will appear here..."></textarea>
                     
-                    /* === FIX 3: Changed 1500 to 3000ms === */
-                    setTimeout(() => {
-                        clickedBalloon.classList.remove('popped');
-                        // Reset animation to make it float again
-                        clickedBalloon.style.animation = 'none';
-                        void clickedBalloon.offsetWidth; // Trigger reflow
-                        clickedBalloon.style.animation = null; 
-                    }, 3000); // Matches 'showBurstText' animation duration
+                    <label for="editFontSizeText">Font Size for Re-insertion:</label>
+                    <input type="number" id="editFontSizeText" value="12" min="1" max="72" />
+                    
+                    <button id="updateTextBtn" disabled>2. Update PDF</button>
+                </div>
+            </div>
+
+            <div id="pdf-to-docx" class="tool-section">
+                <div class="tool-header">
+                    <h1>PDF to DOCX</h1>
+                    <p>Convert PDF to a text-only DOCX file.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="pdfToDocxUpload">
+                        <input type="file" id="pdfToDocxUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <button id="btnPerformPdfToDocx">Convert to DOCX</button>
+                    <button id="downloadDocxBtn" disabled class="secondary">Download DOCX</button>
+                </div>
+            </div>
+
+            <div id="docx-to-pdf" class="tool-section">
+                <div class="tool-header">
+                    <h1>DOCX to PDF</h1>
+                    <p>Convert a DOCX (Word) file to PDF.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="docxToPdfUpload">
+                        <input type="file" id="docxToPdfUpload" accept=".docx,.doc" />
+                        <p>Click or Drop DOCX here</p>
+                    </label>
+                    <button id="btnPerformDocxToPdf">Convert to PDF</button>
+                    <button id="downloadConvertedPdfBtn" disabled class="secondary">Download PDF</button>
+                </div>
+            </div>
+            
+            <div id="pdf-to-txt" class="tool-section">
+                <div class="tool-header">
+                    <h1>PDF to TXT</h1>
+                    <p>Extract all text from a PDF into a plain text file.</p>
+                </div>
+                <div class="box">
+                    <label class="upload-area" for="pdfToTxtUpload">
+                        <input type="file" id="pdfToTxtUpload" accept=".pdf" />
+                        <p>Click or Drop PDF here</p>
+                    </label>
+                    <button id="btnPerformPdfToTxt">Extract Text</button>
+                    <button id="downloadTxtBtn" disabled class="secondary">Download TXT</button>
+                </div>
+                <div id="txtOutput" style="display:none;"></div>
+            </div>
+
+            <div id="largeFileWarning" class="warning" style="display:none; padding:15px; border-radius:var(--border-radius);">
+                Warning: File is large (>50MB). Processing may be slow or fail in the browser.
+            </div>
+            
+            <div id="message"></div>
+            
+            <div class="action-bar" id="actionBar" style="display:none;">
+                <button id="previewBtn">Preview PDF</button>
+                <button id="downloadBtn" class="secondary">Download PDF</button>
+            </div>
+            
+            <div id="preview"></div>
+
+        </main>
+    </div>
+
+    <script>
+        // Set worker source for pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // App State
+        let currentPdfBytes = null;
+        let splitPdfDoc = null;
+        let ocrText = '';
+        let analysisData = '';
+        let extractedTextContent = '';
+        let editedDocxBytes = null;
+        let convertedPdfBytes = null;
+        let txtContent = '';
+        
+        // === Navigation ===
+        function showTool(toolId) {
+            document.querySelectorAll('.tool-section').forEach(sec => sec.classList.remove('active'));
+            const toolSection = document.getElementById(toolId);
+            if (toolSection) { toolSection.classList.add('active'); }
+            
+            document.querySelectorAll('.sidebar-nav button').forEach(btn => btn.classList.remove('active'));
+            const activeButton = document.querySelector(`.sidebar-nav button[data-tool="${toolId}"]`);
+            if (activeButton) { activeButton.classList.add('active'); }
+
+            currentPdfBytes = null;
+            document.getElementById('actionBar').style.display = 'none';
+            document.getElementById('previewBtn').disabled = true;
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('largeFileWarning').style.display = 'none';
+            document.getElementById('preview').innerHTML = '';
+            showMessage('', 'success', true);
+        }
+
+        // === UI Helpers ===
+        function setLoading(button, isLoading) {
+            if (!button) return;
+            if (isLoading) {
+                button.disabled = true;
+                button.dataset.originalText = button.textContent;
+                button.textContent = 'Loading...';
+            } else {
+                button.disabled = false;
+                if (button.dataset.originalText) {
+                    button.textContent = button.dataset.originalText;
+                }
+            }
+        }
+        
+        function showMessage(text, type, clear = false) {
+            const messageDiv = document.getElementById('message');
+            if (clear) {
+                messageDiv.style.display = 'none';
+                return;
+            }
+            messageDiv.textContent = text;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+        }
+
+        function checkLargeFile(file, maxSize = 50 * 1024 * 1024) {
+            const warningDiv = document.getElementById('largeFileWarning');
+            if (file && file.size > maxSize) {
+                warningDiv.style.display = 'block';
+                return false;
+            }
+            warningDiv.style.display = 'none';
+            return true;
+        }
+
+        function enableDownloadBar() {
+            document.getElementById('actionBar').style.display = 'flex';
+            document.getElementById('previewBtn').disabled = false;
+            document.getElementById('downloadBtn').disabled = false;
+        }
+
+        // === Tool Logic ===
+
+        // Edit Tool
+        async function performEdit(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('editUpload').files[0];
+            const text = document.getElementById('editText').value;
+            const x = parseFloat(document.getElementById('editX').value);
+            const y = parseFloat(document.getElementById('editY').value);
+            const fontSize = parseInt(document.getElementById('editFontSize').value);
+            const pageNum = parseInt(document.getElementById('editPage').value) - 1;
+            const imageFile = document.getElementById('editImage').files[0];
+            const imageX = parseFloat(document.getElementById('imageX').value);
+            const imageY = parseFloat(document.getElementById('imageY').value);
+            const imageScale = parseFloat(document.getElementById('imageScale').value);
+            
+            if (!file || (!text && !imageFile)) {
+                showMessage('Upload PDF and provide text or image.', 'error');
+                setLoading(button, false); return;
+            }
+            if (!checkLargeFile(file)) { setLoading(button, false); return; }
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                let pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                const pages = pdfDoc.getPages();
+                
+                if (pageNum >= 0 && pageNum < pages.length) {
+                    const page = pages[pageNum];
+                    if (text) {
+                        page.drawText(text, { x, y, size: fontSize, font: helveticaFont, color: PDFLib.rgb(0, 0, 0) });
+                    }
+                    if (imageFile) {
+                        const imageBytes = await imageFile.arrayBuffer();
+                        let image;
+                        if (imageFile.type.includes('jpeg')) {
+                            image = await pdfDoc.embedJpg(imageBytes);
+                        } else if (imageFile.type.includes('png')) {
+                            image = await pdfDoc.embedPng(imageBytes);
+                        } else {
+                            throw new Error('Unsupported image format. Use JPEG or PNG.');
+                        }
+                        page.drawImage(image, { x: imageX, y: imageY, width: image.width * imageScale, height: image.height * imageScale });
+                    }
+                } else { throw new Error('Page number exceeds PDF length.'); }
+                
+                currentPdfBytes = await pdfDoc.save();
+                enableDownloadBar();
+                showMessage('Text/Image added successfully!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // Merge Tool
+        async function performMerge(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const files = Array.from(document.getElementById('mergeUpload').files);
+            if (files.length < 2) {
+                showMessage('Upload at least 2 PDFs.', 'error');
+                setLoading(button, false); return;
+            }
+            let totalSize = files.reduce((acc, file) => acc + file.size, 0);
+            if (!checkLargeFile({size: totalSize})) { setLoading(button, false); return; }
+            
+            try {
+                const mergedPdf = await PDFLib.PDFDocument.create();
+                for (const file of files) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach(page => mergedPdf.addPage(page));
+                }
+                
+                currentPdfBytes = await mergedPdf.save();
+                enableDownloadBar();
+                showMessage('PDFs merged successfully!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // Split Tool
+        async function loadPagesForSplit() {
+            const file = document.getElementById('splitUpload').files[0];
+            if (!file || !checkLargeFile(file)) return;
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                splitPdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const numPages = splitPdfDoc.getPageIndices().length;
+                const pageList = document.getElementById('pageList');
+                pageList.innerHTML = '';
+                for (let i = 1; i <= numPages; i++) {
+                    const id = `page_${i}`;
+                    const label = document.createElement('label');
+                    label.htmlFor = id;
+                    label.className = 'page-checkbox';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = i - 1;
+                    checkbox.id = id;
+                    checkbox.checked = true;
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(`Page ${i}`));
+                    pageList.appendChild(label);
+                }
+            } catch (error) { showMessage('Error loading PDF: ' + error.message, 'error'); }
+        }
+        
+        async function performSplit(e) {
+            const button = e.target;
+            setLoading(button, true);
+            if (!splitPdfDoc) {
+                showMessage('Upload a PDF first.', 'error');
+                setLoading(button, false); return;
+            }
+            
+            const selectedPages = Array.from(document.querySelectorAll('#pageList input:checked')).map(cb => parseInt(cb.value));
+            if (selectedPages.length === 0) {
+                showMessage('Select at least one page.', 'error');
+                setLoading(button, false); return;
+            }
+            
+            try {
+                let splitPdfs = [];
+                for (let pageIndex of selectedPages) {
+                    const newPdf = await PDFLib.PDFDocument.create();
+                    const [copiedPage] = await newPdf.copyPages(splitPdfDoc, [pageIndex]);
+                    newPdf.addPage(copiedPage);
+                    const bytes = await newPdf.save();
+                    splitPdfs.push({ name: `page_${pageIndex + 1}.pdf`, bytes });
+                }
+                
+                splitPdfs.forEach(({ name, bytes }) => {
+                    const blob = new Blob([bytes], { type: 'application/pdf' });
+                    saveAs(blob, name);
+                });
+                showMessage(`Split and downloaded ${splitPdfs.length} files!`, 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // Rotate Tool
+        async function performRotate(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('rotateUpload').files[0];
+            const pageNum = parseInt(document.getElementById('rotatePage').value) - 1;
+            const angle = parseInt(document.getElementById('rotateAngle').value);
+            
+            if (!file || !checkLargeFile(file)) {
+                showMessage('Upload a PDF.', 'error');
+                setLoading(button, false); return;
+            }
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                let pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const pages = pdfDoc.getPages();
+                
+                if (pageNum >= 0 && pageNum < pages.length) {
+                    const currentRotation = pages[pageNum].getRotation().angle;
+                    pages[pageNum].setRotation(PDFLib.degrees(currentRotation + angle));
+                } else { throw new Error('Page number exceeds PDF length.'); }
+                
+                currentPdfBytes = await pdfDoc.save();
+                enableDownloadBar();
+                showMessage('Page rotated successfully!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // Compress Tool
+        async function performCompress(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('compressUpload').files[0];
+            const level = document.getElementById('compressLevel').value;
+            if (!file || !checkLargeFile(file)) {
+                showMessage('Upload a PDF.', 'error');
+                setLoading(button, false); return;
+            }
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                let pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, {
+                    ignoreCreator: level !== 'low',
+                    ignoreProducer: true,
+                    ignoreCreationDate: true,
+                    ignoreModDate: true,
+                });
+                
+                currentPdfBytes = await pdfDoc.save({
+                    useObjectStreams: level !== 'low',
+                });
+                enableDownloadBar();
+                showMessage('PDF compression applied!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // Forms Tool
+        async function performAddForm(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('formsUpload').files[0];
+            if (!file || !checkLargeFile(file)) {
+                showMessage('Upload a PDF.', 'error');
+                setLoading(button, false); return;
+            }
+
+            const pageNum = parseInt(document.getElementById('formPage').value) - 1;
+            const fieldName = document.getElementById('fieldName').value;
+            const fieldX = parseFloat(document.getElementById('fieldX').value);
+            const fieldY = parseFloat(document.getElementById('fieldY').value);
+            const fieldWidth = parseFloat(document.getElementById('fieldWidth').value);
+            const fieldHeight = parseFloat(document.getElementById('fieldHeight').value);
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                let pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const form = pdfDoc.getForm();
+                const pages = pdfDoc.getPages();
+                
+                if (pageNum >= 0 && pageNum < pages.length) {
+                    const textField = form.createTextField(fieldName);
+                    textField.setText('');
+                    textField.addToPage(pages[pageNum], {
+                        x: fieldX, y: fieldY, width: fieldWidth, height: fieldHeight,
+                        fontSize: 12, color: PDFLib.rgb(0, 0, 0),
+                    });
+                } else { throw new Error('Page number exceeds PDF length.'); }
+                
+                currentPdfBytes = await pdfDoc.save();
+                enableDownloadBar();
+                showMessage('Form field added!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // Watermark Tool
+        async function performWatermark(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('watermarkUpload').files[0];
+            const watermarkText = document.getElementById('watermarkText').value;
+            if (!file || !watermarkText || !checkLargeFile(file)) {
+                showMessage('Upload PDF and enter watermark text.', 'error');
+                setLoading(button, false); return;
+            }
+
+            const opacity = parseFloat(document.getElementById('watermarkOpacity').value);
+            const fontSize = parseInt(document.getElementById('watermarkFontSize').value);
+            const rotation = parseFloat(document.getElementById('watermarkRotation').value);
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                let pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                const pages = pdfDoc.getPages();
+                
+                pages.forEach((page) => {
+                    const { width, height } = page.getSize();
+                    const x = width / 2;
+                    const y = height / 2;
+                    page.drawText(watermarkText, {
+                        x, y, size: fontSize, font: helveticaFont,
+                        color: PDFLib.rgb(0.5, 0.5, 0.5),
+                        opacity,
+                        rotate: PDFLib.degrees(rotation),
+                    });
+                });
+                
+                currentPdfBytes = await pdfDoc.save();
+                enableDownloadBar();
+                showMessage('Watermark applied!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // OCR Tool
+        async function performOCR(e) {
+            const button = e.target;
+            setLoading(button, true);
+            
+            const file = document.getElementById('ocrUpload').files[0];
+            if (!file || !checkLargeFile(file)) {
+                showMessage('Upload a PDF for OCR.', 'error');
+                setLoading(button, false); return;
+            }
+            
+            const progressDiv = document.getElementById('progress');
+            const outputDiv = document.getElementById('ocrOutput');
+            progressDiv.innerHTML = '<p>Initializing OCR...</p>';
+            outputDiv.textContent = '';
+            outputDiv.style.display = 'none';
+            ocrText = '';
+            document.getElementById('downloadOcrBtn').disabled = true;
+            
+            try {
+                // Check if Tesseract is loaded
+                if (typeof Tesseract === 'undefined') {
+                   throw new Error('Tesseract.js library is not loaded.');
+                }
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+                const numPages = Math.min(pdf.numPages, 5);
+                
+                for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                    progressDiv.innerHTML = `<p>Processing Page ${pageNum}/${numPages}...</p>`;
+                    
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    await page.render({ canvasContext: context, viewport }).promise;
+                    
+                    const { data: { text } } = await Tesseract.recognize(canvas, 'eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                progressDiv.innerHTML = `<p>Page ${pageNum}/${numPages}: ${m.status} (${(m.progress * 100).toFixed(0)}%)</p>`;
+                            }
+                        },
+                    });
+                    ocrText += `--- Page ${pageNum} ---\n${text}\n\n`;
+                }
+                
+                outputDiv.textContent = ocrText;
+                outputDiv.style.display = 'block';
+                document.getElementById('downloadOcrBtn').disabled = false;
+                progressDiv.innerHTML = '';
+                showMessage(`OCR completed for ${numPages} pages!`, 'success');
+            } catch (error) {
+                showMessage('OCR Error: ' + error.message, 'error');
+                console.error(error);
+                progressDiv.innerHTML = '';
+            }
+            setLoading(button, false);
+        }
+        
+        function downloadOCR() {
+            if (!ocrText) return;
+            const blob = new Blob([ocrText], { type: 'text/plain' });
+            saveAs(blob, 'ocr-extracted.txt');
+        }
+        
+        // Analyze Tool
+        async function performAnalyze(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('analyzeUpload').files[0];
+            if (!file || !checkLargeFile(file)) { setLoading(button, false); return; }
+            
+            const analysisDiv = document.getElementById('analysisOutput');
+            analysisDiv.innerHTML = '<p>Analyzing...</p>';
+            analysisDiv.style.display = 'block';
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                
+                const metadata = pdfDoc.getDocumentInfo();
+                let output = '=== METADATA ===\n';
+                output += `Title: ${metadata.Title || 'N/A'}\n`;
+                output += `Author: ${metadata.Author || 'N/A'}\n`;
+                output += `Subject: ${metadata.Subject || 'N/A'}\n`;
+                output += `Creator: ${metadata.Creator || 'N/A'}\n`;
+                output += `Producer: ${metadata.Producer || 'N/A'}\n`;
+                output += `Page Count: ${pdfDoc.getPageCount()}\n\n`;
+                
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+                const pdf = await loadingTask.promise;
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    output += `=== Page ${pageNum} Text (Raw) ===\n${pageText}\n\n`;
+                }
+                
+                analysisData = output;
+                analysisDiv.textContent = output;
+                document.getElementById('downloadAnalysisBtn').disabled = false;
+                showMessage('Analysis complete!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        function downloadAnalysis() {
+            const blob = new Blob([analysisData], { type: 'text/plain' });
+            saveAs(blob, 'analysis.txt');
+        }
+        
+        // Edit Text Tool
+        async function extractTextForEdit(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('texteditUpload').files[0];
+            if (!file || !checkLargeFile(file)) { setLoading(button, false); return; }
+            
+            const textArea = document.getElementById('extractedText');
+            textArea.value = 'Extracting...';
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+                let fullText = '';
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    fullText += `[Page ${pageNum}]\n` + textContent.items.map(item => item.str).join(' ') + '\n\n';
+                }
+                extractedTextContent = fullText;
+                textArea.value = fullText;
+                document.getElementById('updateTextBtn').disabled = false;
+                showMessage('Text extracted! Edit and update.', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        async function updatePDFWithEditedText(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const editedText = document.getElementById('extractedText').value;
+            const fontSize = parseInt(document.getElementById('editFontSizeText').value);
+            const file = document.getElementById('texteditUpload').files[0];
+            
+            if (!file || !editedText) {
+                showMessage('No file or text to update.', 'error');
+                setLoading(button, false); return;
+            }
+            
+            try {
+                const pdfDoc = await PDFLib.PDFDocument.create();
+                const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                const page = pdfDoc.addPage();
+                const { height, width } = page.getSize();
+                
+                page.drawText(editedText, {
+                    x: 50, y: height - 50, size: fontSize, font: helveticaFont,
+                    color: PDFLib.rgb(0, 0, 0), maxWidth: width - 100, lineHeight: fontSize * 1.2
+                });
+                
+                currentPdfBytes = await pdfDoc.save();
+                enableDownloadBar();
+                showMessage('New PDF created with edited text!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        // --- Convert Tools ---
+        async function performPdfToDocx(e) {
+            const button = e.target;
+            setLoading(button, true);
+            
+            const file = document.getElementById('pdfToDocxUpload').files[0];
+            if (!file) { setLoading(button, false); return; }
+            
+            try {
+                // Check if docx library is loaded
+                if (typeof docx === 'undefined') {
+                    throw new Error('DOCX library is not loaded.');
+                }
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+                const paragraphs = [];
+
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun(pageText)] }));
+                }
+                
+                const doc = new docx.Document({ sections: [{ children: paragraphs }] });
+                editedDocxBytes = await docx.Packer.toBlob(doc);
+                document.getElementById('downloadDocxBtn').disabled = false;
+                showMessage('PDF to DOCX complete (text-only)!', 'success');
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                console.error(error);
+            }
+            setLoading(button, false);
+        }
+        
+        function downloadDocx() {
+            saveAs(editedDocxBytes, 'converted.docx');
+        }
+        
+        async function performDocxToPdf(e) {
+            const button = e.target;
+            setLoading(button, true);
+            
+            const file = document.getElementById('docxToPdfUpload').files[0];
+            if (!file) { setLoading(button, false); return; }
+            
+            try {
+                if (typeof mammoth === 'undefined' || typeof html2pdf === 'undefined') {
+                    throw new Error('Conversion library (mammoth or html2pdf) is not loaded.');
+                }
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.convertToHtml({ arrayBuffer });
+                const element = document.createElement('div');
+                element.innerHTML = result.value;
+                
+                const opt = {
+                    margin: 1, filename: 'converted.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+                
+                convertedPdfBytes = await html2pdf().set(opt).from(element).output('blob');
+                document.getElementById('downloadConvertedPdfBtn').disabled = false;
+                showMessage('DOCX to PDF complete!', 'success');
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                console.error(error);
+            }
+            setLoading(button, false);
+        }
+        
+        function downloadConvertedPdf() {
+            saveAs(convertedPdfBytes, 'converted.pdf');
+        }
+        
+        async function performPdfToTxt(e) {
+            const button = e.target;
+            setLoading(button, true);
+            const file = document.getElementById('pdfToTxtUpload').files[0];
+            if (!file) { setLoading(button, false); return; }
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+                let fullText = '';
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    fullText += `--- Page ${pageNum} ---\n` + textContent.items.map(item => item.str).join(' ') + '\n\n';
+                }
+                txtContent = fullText;
+                const outputDiv = document.getElementById('txtOutput');
+                outputDiv.textContent = fullText;
+                outputDiv.style.display = 'block';
+                document.getElementById('downloadTxtBtn').disabled = false;
+                showMessage('PDF to TXT complete!', 'success');
+            } catch (error) { showMessage('Error: ' + error.message, 'error'); }
+            setLoading(button, false);
+        }
+        
+        function downloadTxt() {
+            const blob = new Blob([txtContent], { type: 'text/plain' });
+            saveAs(blob, 'extracted.txt');
+        }
+        
+        // --- Global Actions ---
+        
+        async function previewPDF(e) {
+            const button = e.target;
+            setLoading(button, true);
+            if (!currentPdfBytes) {
+                showMessage('No PDF to preview.', 'error');
+                setLoading(button, false); return;
+            }
+            
+            const previewDiv = document.getElementById('preview');
+            previewDiv.innerHTML = '<p>Loading preview...</p>';
+            try {
+                const loadingTask = pdfjsLib.getDocument({ data: currentPdfBytes.slice(0) });
+                const pdf = await loadingTask.promise;
+                
+                previewDiv.innerHTML = '';
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    await page.render({ canvasContext: context, viewport }).promise;
+                    previewDiv.appendChild(canvas);
+                }
+            } catch (error) {
+                previewDiv.innerHTML = '<p>Error loading preview.</p>';
+                showMessage('Preview error: ' + error.message, 'error');
+            }
+            setLoading(button, false);
+        }
+        
+        function downloadPDF() {
+            if (!currentPdfBytes) {
+                showMessage('No PDF to download.', 'error'); return;
+            }
+            const blob = new Blob([currentPdfBytes], { type: 'application/pdf' });
+            saveAs(blob, 'processed.pdf');
+            showMessage('Downloaded!', 'success');
+        }
+
+        // === Event Listeners Setup ===
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar Navigation
+            document.querySelectorAll('.sidebar-nav button').forEach(button => {
+                button.addEventListener('click', () => {
+                    showTool(button.dataset.tool);
                 });
             });
-        })();
+
+            // Trigger file input from upload-area
+            document.querySelectorAll('.upload-area').forEach(area => {
+                area.addEventListener('click', (e) => {
+                    // Prevent loop if click is on the input itself
+                    if (e.target.type !== 'file') {
+                        area.querySelector('input[type="file"]').click();
+                    }
+                });
+            });
+
+            // Tool-specific listeners
+            document.getElementById('btnPerformEdit').addEventListener('click', performEdit);
+            document.getElementById('btnPerformMerge').addEventListener('click', performMerge);
+            document.getElementById('splitUpload').addEventListener('change', loadPagesForSplit);
+            document.getElementById('btnPerformSplit').addEventListener('click', performSplit);
+            document.getElementById('btnPerformRotate').addEventListener('click', performRotate);
+            document.getElementById('btnPerformCompress').addEventListener('click', performCompress);
+            document.getElementById('btnPerformAddForm').addEventListener('click', performAddForm);
+            document.getElementById('btnPerformWatermark').addEventListener('click', performWatermark);
+            
+            document.getElementById('btnPerformOCR').addEventListener('click', performOCR);
+            document.getElementById('ocrUpload').addEventListener('change', (e) => {
+                if(e.target.files.length > 0) performOCR(e);
+            });
+            document.getElementById('downloadOcrBtn').addEventListener('click', downloadOCR);
+
+            document.getElementById('btnPerformAnalyze').addEventListener('click', performAnalyze);
+            document.getElementById('analyzeUpload').addEventListener('change', (e) => {
+                if(e.target.files.length > 0) performAnalyze(e);
+            });
+            document.getElementById('downloadAnalysisBtn').addEventListener('click', downloadAnalysis);
+            
+            document.getElementById('btnExtractText').addEventListener('click', extractTextForEdit);
+            document.getElementById('texteditUpload').addEventListener('change', (e) => {
+                 if(e.target.files.length > 0) extractTextForEdit(e);
+            });
+            document.getElementById('updateTextBtn').addEventListener('click', updatePDFWithEditedText);
+
+            document.getElementById('btnPerformPdfToDocx').addEventListener('click', performPdfToDocx);
+            document.getElementById('pdfToDocxUpload').addEventListener('change', (e) => {
+                if(e.target.files.length > 0) performPdfToDocx(e);
+            });
+            document.getElementById('downloadDocxBtn').addEventListener('click', downloadDocx);
+            
+            document.getElementById('btnPerformDocxToPdf').addEventListener('click', performDocxToPdf);
+            document.getElementById('docxToPdfUpload').addEventListener('change', (e) => {
+                if(e.target.files.length > 0) performDocxToPdf(e);
+            });
+            document.getElementById('downloadConvertedPdfBtn').addEventListener('click', downloadConvertedPdf);
+
+            document.getElementById('btnPerformPdfToTxt').addEventListener('click', performPdfToTxt);
+            document.getElementById('pdfToTxtUpload').addEventListener('change', (e) => {
+                if(e.target.files.length > 0) performPdfToTxt(e);
+            });
+            document.getElementById('downloadTxtBtn').addEventListener('click', downloadTxt);
+
+            // Global Action Bar
+            document.getElementById('previewBtn').addEventListener('click', previewPDF);
+            document.getElementById('downloadBtn').addEventListener('click', downloadPDF);
+
+            // Set initial tool
+            showTool('edit');
+        });
     </script>
 </body>
 </html>
