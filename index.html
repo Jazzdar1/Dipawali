@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DarTV - Final Command</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/6.6.6/css/flag-icons.min.css">
+    
+    <style>
+        /* --- RESET --- */
+        :root {
+            --bg-body: #050505;
+            --bg-side: #0a0a0a;
+            --primary: #3b82f6; /* Blue */
+            --accent: #dc2626; /* Red */
+            --border: 1px solid #222;
+        }
+        * { box-sizing: border-box; outline: none; }
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg-body);
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column; /* Vertical Stack for Ticker -> Body */
+            overflow: hidden;
+        }
+
+        /* --- ICONS --- */
+        .icon { width: 18px; height: 18px; fill: currentColor; }
+
+        /* --- TOP TICKER (KASHMIR) --- */
+        .ticker-top-box {
+            height: 32px;
+            background: #450a0a; /* Dark Red */
+            border-bottom: 1px solid #333;
+            display: flex;
+            flex-shrink: 0; /* Never shrink */
+            z-index: 200;
+        }
+        .tt-label {
+            background: #dc2626; color: white;
+            font-size: 11px; font-weight: 900;
+            padding: 0 15px;
+            display: flex; align-items: center;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+        .tt-text-wrap {
+            flex: 1; overflow: hidden; position: relative; display: flex; align-items: center;
+        }
+        .tt-text {
+            white-space: nowrap; font-size: 13px; font-weight: 600; color: #fca5a5;
+            display: inline-block; padding-left: 100%;
+            animation: scroll 120s linear infinite; /* Slow Speed */
+        }
+
+        /* --- APP BODY (Sidebar + Main) --- */
+        .app-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden; /* Contains children */
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 280px; min-width: 280px;
+            background: var(--bg-side);
+            border-right: var(--border);
+            display: flex; flex-direction: column;
+            z-index: 100;
+        }
+        
+        .brand {
+            padding: 20px; font-size: 26px; font-weight: 900;
+            border-bottom: var(--border);
+            display: flex; align-items: center; gap: 10px;
+            background: #000;
+        }
+        .brand span { color: var(--primary); }
+
+        .tools { padding: 15px; background: #111; border-bottom: var(--border); }
+        .cors-toggle {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 12px; background: #1a1a1a; border: 1px solid #333;
+            border-radius: 4px; cursor: pointer; margin-bottom: 10px;
+        }
+        .cors-toggle.active { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
+        .cors-indicator { width: 10px; height: 10px; background: #444; border-radius: 50%; }
+        .cors-toggle.active .cors-indicator { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
+        .cors-txt { font-size: 12px; color: #ccc; }
+        
+        /* New Tools Button Style */
+        .tool-btn {
+            width: 100%; background: #222; border: 1px solid #333; color: #ccc;
+            padding: 8px; margin-bottom: 8px; border-radius: 4px; cursor: pointer;
+            font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .tool-btn:hover { background: #333; color: white; }
+
+        .ext-box { display: flex; gap: 5px; }
+        .ext-inp { flex: 1; background: #000; border: 1px solid #333; color: white; padding: 6px; border-radius: 4px; font-size: 12px; }
+        .ext-btn { background: var(--primary); border: none; color: white; padding: 0 10px; border-radius: 4px; cursor: pointer; }
+
+        .tabs { display: flex; border-bottom: var(--border); }
+        .tab { flex: 1; padding: 12px; background: transparent; color: #777; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; }
+        .tab.active { color: white; border-bottom-color: var(--primary); background: #151515; }
+
+        .search { padding: 10px; border-bottom: var(--border); }
+        .search-inp { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; }
+
+        .nav-list { flex: 1; overflow-y: auto; }
+        .nav-item { padding: 10px 15px; border-bottom: 1px solid #1a1a1a; cursor: pointer; color: #ccc; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+        .nav-item:hover { background: #222; color: white; }
+        .nav-item.active { background: var(--primary); color: white; }
+
+        /* --- MAIN AREA --- */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: #000;
+        }
+
+        /* 1. PLAYER SECTION (Fixed Height 55%) */
+        .player-section {
+            height: 55%; 
+            display: flex; flex-direction: column;
+            background: #000;
+            position: relative;
+            flex-shrink: 0; /* Dont let it shrink */
+        }
+
+        .video-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        video { width: 100%; height: 100%; }
+
+        /* Startup Overlay */
+        .startup {
+            position: absolute; inset: 0; background: #000; z-index: 20;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s; pointer-events: none; opacity: 1;
+        }
+        .big-logo { font-size: 50px; font-weight: 900; letter-spacing: -2px; margin-bottom: 10px; }
+        .big-logo span { color: var(--primary); }
+        .loader { width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
+        @keyframes spin { to {transform: rotate(360deg);} }
+
+        /* 2. BOTTOM TICKER (WORLD) - Inside Main, below player */
+        .ticker-bot-box {
+            height: 30px;
+            background: #0c4a6e; /* Dark Blue */
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            display: flex;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .tb-label {
+            background: #0284c7; color: white;
+            font-size: 11px; font-weight: 900;
+            padding: 0 15px; display: flex; align-items: center;
+            z-index: 2; box-shadow: 4px 0 10px rgba(0,0,0,0.5);
+        }
+        .tb-text {
+            white-space: nowrap; font-size: 13px; font-weight: 600; color: #bae6fd;
+            display: inline-block; padding-left: 100%;
+            animation: scroll 100s linear infinite;
+        }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+        /* 3. BROWSER SECTION (Fills Remaining Space) */
+        .browser-section {
+            flex: 1; /* Takes remaining 45% */
+            display: flex; flex-direction: column;
+            background: #050505;
+            min-height: 0; /* Crucial for scrolling */
+        }
+        
+        .controls {
+            height: 40px; background: #111; border-bottom: var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
+        }
+        .meta { display: flex; align-items: center; gap: 10px; }
+        .meta img { width: 24px; height: 24px; background: #222; border-radius: 3px; object-fit: contain; }
+        .meta-info div:first-child { font-weight: bold; font-size: 13px; }
+        .meta-info div:last-child { font-size: 10px; color: var(--primary); }
+        .asp-btn { background: #222; border: 1px solid #333; color: #ccc; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+
+        .rail { padding: 8px; background: #0a0a0a; border-bottom: var(--border); display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
+        .chip { padding: 4px 12px; background: #222; border: 1px solid #333; border-radius: 20px; font-size: 11px; color: #ccc; white-space: nowrap; cursor: pointer; }
+        .chip:hover { background: #333; color: white; }
+
+        .grid {
+            flex: 1; /* Scrollable Area */
+            overflow-y: auto;
+            padding: 15px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px; align-content: start;
+        }
+        .card {
+            background: #141414; border: 1px solid #222; border-radius: 6px;
+            overflow: hidden; cursor: pointer; display: flex; flex-direction: column; height: 110px;
+            position: relative; transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .c-img { flex: 1; background: radial-gradient(circle, #222, #000); display: flex; align-items: center; justify-content: center; position: relative; }
+        .c-img img { max-width: 80%; max-height: 80%; object-fit: contain; z-index: 2; }
+        .fb { position: absolute; font-size: 20px; color: #333; z-index: 1; font-weight: 900; }
+        .c-inf { height: 30px; padding: 0 8px; background: #1a1a1a; display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+        .fav { color: #444; } .fav.active { color: #eab308; }
+
+    </style>
+</head>
+<body>
+
+<div class="ticker-top-box">
+    <div class="tt-label">J&K UPDATES</div>
+    <div class="tt-text-wrap">
+        <div class="tt-text">
+            ?? TRAFFIC ALERT: NH-44 Jammu-Srinagar Highway OPEN for two-way traffic but slow at Dalwas/Mehar • Mughal Road & SSG Road CLOSED • 
+            ?? WEATHER: Srinagar 2°C (Mist), Gulmarg -5°C (Snow), Pahalgam -1°C • 
+            ?? NEWS: Winter vacations announced for Kashmir schools • Power shutdown schedule released for North Kashmir • 
+            Sports: J&K Football League finals on Sunday • Stay tuned to DarTV for live updates from the valley.
+        </div>
+    </div>
+</div>
+
+<div class="app-body">
+    <div class="sidebar">
+        <div class="brand">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3 .35 0 .69.07 1 .18V6h5v2h-3v7.03A3.003 3.003 0 0 1 11 18c-1.66 0-3-1.34-3-3z"/></svg>
+            <div>DAR<span>TV</span></div>
+        </div>
+
+        <div class="tools">
+            <div class="cors-toggle" id="corsBtn" onclick="toggleCors()">
+                <span class="cors-txt">Unblock Stream (CORS)</span>
+                <div class="cors-indicator"></div>
+            </div>
+
+            <button class="tool-btn" onclick="window.open('https://drive.google.com/drive/folders/1T6cQGWCggMAuq6i2QfdJLEfkysyNeD4W','_blank')">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M19.46 9.63l-4.22-7.33c-.45-.78-1.27-1.25-2.17-1.25H6.93c-.9 0-1.72.47-2.17 1.25L.54 9.63c-.45.78-.45 1.76 0 2.54l4.22 7.33c.45.78 1.27 1.25 2.17 1.25h6.15c.9 0 1.72-.47 2.17-1.25l4.22-7.33c.45-.78.45-1.76 0-2.54z"/></svg>
+                Open My Drive
+            </button>
+
+            <button class="tool-btn" onclick="document.getElementById('localFile').click()">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                Upload Local File
+            </button>
+            <input type="file" id="localFile" style="display:none" accept=".m3u,.m3u8,.ts,.mp4,.mkv" onchange="handleFile(this)">
+
+            <div class="ext-box">
+                <input type="text" id="extUrl" class="ext-inp" placeholder="Paste .m3u link...">
+                <button class="ext-btn" onclick="loadExt()">GO</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="setTab('countries',this)">Countries</button>
+            <button class="tab" onclick="setTab('languages',this)">Languages</button>
+        </div>
+        <div class="search">
+            <input type="text" id="sideSearch" class="search-inp" placeholder="Search..." onkeyup="filterNav()">
+        </div>
+        <div class="nav-list" id="navList"></div>
+    </div>
+
+    <div class="main">
+        
+        <div class="player-section">
+            <div class="video-wrapper">
+                <div class="startup" id="overlay">
+                    <div class="big-logo">DAR<span>TV</span></div>
+                    <div class="loader"></div>
+                    <div style="margin-top:10px; color:#888; font-size:12px;">READY TO WATCH</div>
+                </div>
+                <video id="video" controls autoplay></video>
+            </div>
+        </div>
+
+        <div class="ticker-bot-box">
+            <div class="tb-label">WORLD NEWS</div>
+            <div class="tt-text-wrap">
+                <div class="tb-text">
+                    ?? GLOBAL HEADLINES: Markets rally as tech sector booms • Sports: World Cup qualifiers heat up • Space: New mission to Mars announced for 2026 • Environment: Floods in California, Cyclones in Indian Ocean • Economy: Global inflation stabilizes...
+                </div>
+            </div>
+        </div>
+
+        <div class="browser-section">
+            <div class="controls">
+                <div class="meta">
+                    <img src="" id="metaImg" style="opacity:0">
+                    <div class="meta-info">
+                        <div id="metaTitle">DarTV Live</div>
+                        <div id="metaStat">Select a Channel</div>
+                    </div>
+                </div>
+                <button class="asp-btn" onclick="toggleRatio()">? Fit/Fill</button>
+            </div>
+            <div class="rail" id="categories"></div>
+            <div class="grid" id="grid">
+                <div style="text-align:center; color:#666; margin-top:20px; grid-column:1/-1;">Select a Country or Language to load channels.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE ---
+    const DB = {
+        countries: [
+            {c:"af",n:"Afghanistan"},{c:"al",n:"Albania"},{c:"dz",n:"Algeria"},{c:"ad",n:"Andorra"},{c:"ao",n:"Angola"},
+            {c:"ar",n:"Argentina"},{c:"am",n:"Armenia"},{c:"au",n:"Australia"},{c:"at",n:"Austria"},{c:"az",n:"Azerbaijan"},
+            {c:"bd",n:"Bangladesh"},{c:"be",n:"Belgium"},{c:"ba",n:"Bosnia"},{c:"br",n:"Brazil"},{c:"bg",n:"Bulgaria"},
+            {c:"ca",n:"Canada"},{c:"cl",n:"Chile"},{c:"cn",n:"China"},{c:"co",n:"Colombia"},{c:"hr",n:"Croatia"},
+            {c:"cz",n:"Czech Rep"},{c:"dk",n:"Denmark"},{c:"eg",n:"Egypt"},{c:"fi",n:"Finland"},{c:"fr",n:"France"},
+            {c:"de",n:"Germany"},{c:"gr",n:"Greece"},{c:"hk",n:"Hong Kong"},{c:"hu",n:"Hungary"},{c:"is",n:"Iceland"},
+            {c:"in",n:"India"},{c:"id",n:"Indonesia"},{c:"ir",n:"Iran"},{c:"iq",n:"Iraq"},{c:"ie",n:"Ireland"},
+            {c:"il",n:"Israel"},{c:"it",n:"Italy"},{c:"jp",n:"Japan"},{c:"jo",n:"Jordan"},{c:"kz",n:"Kazakhstan"},
+            {c:"ke",n:"Kenya"},{c:"kw",n:"Kuwait"},{c:"lb",n:"Lebanon"},{c:"my",n:"Malaysia"},{c:"mx",n:"Mexico"},
+            {c:"ma",n:"Morocco"},{c:"np",n:"Nepal"},{c:"nl",n:"Netherlands"},{c:"nz",n:"New Zealand"},{c:"ng",n:"Nigeria"},
+            {c:"no",n:"Norway"},{c:"pk",n:"Pakistan"},{c:"ps",n:"Palestine"},{c:"ph",n:"Philippines"},{c:"pl",n:"Poland"},
+            {c:"pt",n:"Portugal"},{c:"qa",n:"Qatar"},{c:"ro",n:"Romania"},{c:"ru",n:"Russia"},{c:"sa",n:"Saudi Arabia"},
+            {c:"rs",n:"Serbia"},{c:"sg",n:"Singapore"},{c:"za",n:"South Africa"},{c:"kr",n:"South Korea"},{c:"es",n:"Spain"},
+            {c:"lk",n:"Sri Lanka"},{c:"se",n:"Sweden"},{c:"ch",n:"Switzerland"},{c:"sy",n:"Syria"},{c:"tw",n:"Taiwan"},
+            {c:"th",n:"Thailand"},{c:"tr",n:"Turkey"},{c:"ua",n:"Ukraine"},{c:"ae",n:"UAE"},{c:"gb",n:"UK"},
+            {c:"us",n:"USA"},{c:"vn",n:"Vietnam"},{c:"ye",n:"Yemen"}
+        ],
+        languages: [
+            {c:"urd",n:"Urdu"},{c:"kas",n:"Kashmiri"},{c:"hin",n:"Hindi"},{c:"eng",n:"English"},{c:"ara",n:"Arabic"},
+            {c:"spa",n:"Spanish"},{c:"fra",n:"French"},{c:"deu",n:"German"},{c:"rus",n:"Russian"},{c:"zho",n:"Chinese"},
+            {c:"por",n:"Portuguese"},{c:"ita",n:"Italian"},{c:"jpn",n:"Japanese"},{c:"tur",n:"Turkish"},{c:"kor",n:"Korean"},
+            {c:"vie",n:"Vietnamese"},{c:"tha",n:"Thai"},{c:"msa",n:"Malay"},{c:"ind",n:"Indonesian"},{c:"fas",n:"Persian"},
+            {c:"nld",n:"Dutch"},{c:"pol",n:"Polish"},{c:"ukr",n:"Ukrainian"},{c:"swe",n:"Swedish"},{c:"ben",n:"Bengali"},
+            {c:"tam",n:"Tamil"},{c:"tel",n:"Telugu"},{c:"mal",n:"Malayalam"},{c:"kan",n:"Kannada"},{c:"guj",n:"Gujarati"},
+            {c:"mar",n:"Marathi"},{c:"pan",n:"Punjabi"},{c:"kur",n:"Kurdish"},{c:"pus",n:"Pashto"}
+        ],
+        cats: [
+            {id:"news",n:"News"},{id:"sports",n:"Sports"},{id:"movies",n:"Movies"},{id:"music",n:"Music"},
+            {id:"kids",n:"Kids"},{id:"documentary",n:"Documentary"},{id:"comedy",n:"Comedy"},
+            {id:"auto",n:"Auto"},{id:"education",n:"Education"},{id:"business",n:"Business"},
+            {id:"weather",n:"Weather"},{id:"religious",n:"Religious"}
+        ]
+    };
+
+    let channels=[], favorites=JSON.parse(localStorage.getItem('dartv_final_favs'))||[], activeTab='countries', cors=false, hls=null, ratio=0;
+
+    window.onload = () => { renderNav(); renderCats(); loadFavorites(); };
+
+    function setTab(m,b) { activeTab=m; document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderNav(); }
+    function toggleCors() { cors=!cors; document.getElementById('corsBtn').classList.toggle('active'); }
+    function toggleRatio() { ratio=(ratio+1)%3; document.getElementById('video').style.objectFit=['contain','cover','fill'][ratio]; }
+    function loadExt() { let u=document.getElementById('extUrl').value.trim(); if(u) loadPlaylist(u,"External"); }
+
+    // --- LOCAL FILE HANDLER ---
+    function handleFile(input) {
+        let file = input.files[0];
+        if (!file) return;
+        let name = file.name.toLowerCase();
+        
+        showLoader(true);
+        setMeta(file.name, "Reading File...");
+
+        if (name.endsWith('.m3u') || name.endsWith('.m3u8')) {
+            // Text Playlist
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                parseM3U(e.target.result);
+                setMeta("Local Playlist", `${channels.length} Channels Loaded`);
+            };
+            reader.readAsText(file);
+        } else {
+            // Video File
+            let url = URL.createObjectURL(file);
+            let v = document.getElementById('video');
+            
+            // Clean up old HLS
+            if(hls) { hls.destroy(); hls=null; }
+            
+            v.src = url;
+            v.play();
+            setMeta(file.name, "Local Video Playing");
+            showLoader(false);
+        }
+    }
+
+    function renderNav() {
+        const l=document.getElementById('navList'); l.innerHTML='';
+        let f=document.createElement('div'); f.className='nav-item'; f.innerHTML='<span style="color:gold">?</span> Favorites'; f.onclick=loadFavorites; l.appendChild(f);
+        let d=activeTab==='countries'?DB.countries:DB.languages;
+        d.forEach(i=>{
+            let e=document.createElement('div'); e.className='nav-item s-item'; e.setAttribute('data-q',i.n.toLowerCase());
+            let ic=activeTab==='countries'?`<span class="fi fi-${i.c}"></span>`:`<span>??</span>`;
+            e.innerHTML=`${ic} ${i.n}`;
+            e.onclick=()=>{ 
+                document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active');
+                let type=activeTab==='countries'?'countries':'languages';
+                loadPlaylist(`https://iptv-org.github.io/iptv/${type}/${i.c}.m3u`, i.n);
+            };
+            l.appendChild(e);
+        });
+    }
+
+    function renderCats() {
+        const r=document.getElementById('categories');
+        DB.cats.forEach(c=>{
+            let e=document.createElement('div'); e.className='chip'; e.innerText=c.n;
+            e.onclick=()=>loadPlaylist(`https://iptv-org.github.io/iptv/categories/${c.id}.m3u`, c.n);
+            r.appendChild(e);
+        });
+    }
+
+    async function loadPlaylist(url, title, tryProxy=false) {
+        setMeta("Loading...", `Fetching ${title}`); showLoader(true);
+        const g=document.getElementById('grid');
+        
+        // Auto CORS Logic
+        let fetchUrl = (cors || tryProxy) ? `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` : url;
+
+        try {
+            let res = await fetch(fetchUrl);
+            if(!res.ok) throw new Error();
+            let txt = await res.text();
+            parseM3U(txt);
+            setMeta(title, `${channels.length} Channels`);
+        } catch(e) {
+            if(!tryProxy && !cors) {
+                console.log("Retry with proxy...");
+                loadPlaylist(url, title, true); // Auto Retry
+            } else {
+                g.innerHTML='<div style="text-align:center;padding:20px;color:#888;">Error loading list. Server might be blocked.</div>';
+                setMeta("Error", "Load Failed");
+                showLoader(false);
+            }
+        }
+    }
+
+    function parseM3U(d) {
+        channels=[]; let lines=d.split('\n'), cur={};
+        lines.forEach(l=>{
+            l=l.trim();
+            if(l.startsWith('#EXTINF:')) {
+                let logo=l.match(/tvg-logo="([^"]*)"/); let n=l.split(',').pop();
+                cur.name=n; cur.logo=logo?logo[1]:null;
+            } else if(l.startsWith('http')) { cur.url=l; channels.push({...cur}); cur={}; }
+        });
+        renderGrid(channels);
+    }
+
+    function renderGrid(lst) {
+        const g=document.getElementById('grid'); g.innerHTML=''; 
+        if(lst.length===0) { g.innerHTML='<div style="text-align:center;padding:20px;color:#888;">No channels found.</div>'; showLoader(false); return; }
+        
+        let lim=lst.slice(0,500); 
+        lim.forEach(ch=>{
+            let isFav=favorites.some(f=>f.url===ch.url);
+            let e=document.createElement('div'); e.className='card';
+            e.innerHTML=`<div class="c-img"><div class="fb">TV</div><img src="${ch.logo||''}" onerror="this.style.display='none'"></div><div class="c-inf"><div>${ch.name.substring(0,18)}</div><div class="fav ${isFav?'active':''}">?</div></div>`;
+            e.onclick=(ev)=>{ if(ev.target.classList.contains('fav')) toggleFav(ch); else playChannel(ch); };
+            g.appendChild(e);
+        });
+        showLoader(false);
+    }
+
+    function playChannel(ch) {
+        let v=document.getElementById('video'); setMeta(ch.name,"Buffering..."); showLoader(true);
+        let m=document.getElementById('metaImg'); if(ch.logo){m.src=ch.logo;m.style.opacity=1;}else m.style.opacity=0;
+        
+        if(Hls.isSupported()) {
+            if(hls) hls.destroy(); hls=new Hls(); hls.loadSource(ch.url); hls.attachMedia(v);
+            hls.on(Hls.Events.MANIFEST_PARSED,()=>{ v.play(); showLoader(false); setMeta(ch.name,"Live HD"); });
+            hls.on(Hls.Events.ERROR,()=>{ setMeta(ch.name,"Offline / Error"); });
+        } else if(v.canPlayType('application/vnd.apple.mpegurl')) {
+            v.src=ch.url; v.play(); showLoader(false); setMeta(ch.name,"Live HD");
+        }
+    }
+
+    function setMeta(t,s){ document.getElementById('metaTitle').innerText=t; document.getElementById('metaStat').innerText=s; }
+    function showLoader(b){ document.getElementById('overlay').style.opacity=b?1:0; document.getElementById('overlay').style.pointerEvents=b?'auto':'none'; }
+    function toggleFav(c){ let i=favorites.findIndex(f=>f.url===c.url); if(i>-1)favorites.splice(i,1); else favorites.push(c); localStorage.setItem('dartv_final_favs',JSON.stringify(favorites)); renderGrid(channels); }
+    function loadFavorites(){ channels=favorites; renderGrid(favorites); setMeta("Favorites",`${favorites.length} Saved`); }
+    function filterNav(){ let q=document.getElementById('sideSearch').value.toLowerCase(); document.querySelectorAll('.s-item').forEach(x=>{ x.style.display=x.getAttribute('data-q').includes(q)?'flex':'none'; }); }
+
+</script>
+</body>
+</html>
