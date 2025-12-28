@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DarTV - Mobile Advanced</title>
+    <title>DarTV - Mobile Scroll Fixed</title>
     
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css">
@@ -12,7 +12,17 @@
         /* --- RESET --- */
         :root { --bg-body: #050505; --bg-side: #0a0a0a; --primary: #3b82f6; --accent: #dc2626; --border: 1px solid #222; }
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; background: var(--bg-body); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* FIX: Use 100dvh for mobile to prevent scroll locking */
+        body { 
+            margin: 0; padding: 0; 
+            background: var(--bg-body); color: #fff; 
+            font-family: -apple-system, system-ui, sans-serif; 
+            height: 100vh; height: 100dvh; /* Dynamic Height */
+            display: flex; flex-direction: column; 
+            overflow: hidden; /* Prevent body scroll */
+        }
+        
         .icon { width: 18px; height: 18px; fill: currentColor; }
 
         /* --- TICKERS --- */
@@ -27,7 +37,12 @@
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
         /* --- APP STRUCTURE --- */
-        .app-body { flex: 1; display: flex; overflow: hidden; }
+        .app-body { 
+            flex: 1; 
+            display: flex; 
+            overflow: hidden; /* Crucial for keeping player sticky */
+            position: relative;
+        }
         
         /* SIDEBAR */
         .sidebar { width: 280px; min-width: 280px; background: var(--bg-side); border-right: var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s ease; }
@@ -54,15 +69,23 @@
         .nav-item.active { background: var(--primary); color: white; }
 
         /* --- MAIN AREA --- */
-        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #000; }
+        .main { 
+            flex: 1; 
+            display: flex; flex-direction: column; 
+            min-width: 0; background: #000; 
+            height: 100%; 
+            overflow: hidden; /* Fixes scroll bleeding */
+        }
 
         /* PLAYER SECTION */
         .player-section {
+            /* On mobile, limit height so browser section has space */
             height: 60%; 
             display: flex; flex-direction: column;
             background: #000; 
-            position: relative; flex-shrink: 0; 
-            overflow: hidden;
+            position: relative; 
+            flex-shrink: 0; /* Prevents player from shrinking */
+            z-index: 50;
         }
 
         .video-wrapper {
@@ -92,12 +115,19 @@
         }
 
         /* --- BROWSER --- */
-        .browser-section { flex: 1; display: flex; flex-direction: column; background: #050505; min-height: 0; }
+        .browser-section { 
+            flex: 1; 
+            display: flex; flex-direction: column; 
+            background: #050505; 
+            min-height: 0; /* Important for flex child scroll */
+            overflow: hidden;
+        }
         
-        /* Updated Control Bar with Advanced Buttons & Scroll for Mobile */
+        /* Control Bar */
         .controls { 
             height: 45px; background: #111; border-bottom: var(--border); 
             display: flex; align-items: center; padding: 0 10px; gap: 10px;
+            flex-shrink: 0;
         }
         .meta { display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 100px; }
         .meta img { width: 24px; height: 24px; background: #222; border-radius: 3px; object-fit: contain; }
@@ -107,14 +137,14 @@
         
         .player-actions { 
             display: flex; gap: 5px; margin-left: auto; 
-            overflow-x: auto; white-space: nowrap; /* Scrollable actions on small screens */
-            padding-bottom: 2px; /* Scrollbar spacing */
+            overflow-x: auto; white-space: nowrap; 
+            padding-bottom: 2px; 
         }
         .act-btn { 
             background: #222; border: 1px solid #333; color: #ccc; 
             padding: 5px 8px; border-radius: 4px; cursor: pointer; 
             font-size: 11px; display: inline-flex; align-items: center; gap: 4px; 
-            flex-shrink: 0; /* Don't squash */
+            flex-shrink: 0; 
         }
         .act-btn:hover { background: #333; color: white; border-color: #555; }
         .act-btn.active { color: #00ff00; border-color: #00ff00; }
@@ -129,7 +159,19 @@
         .chip { padding: 4px 12px; background: #222; border: 1px solid #333; border-radius: 20px; font-size: 11px; color: #ccc; white-space: nowrap; cursor: pointer; flex-shrink: 0; }
         .chip:hover { background: #333; color: white; }
         
-        .grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; align-content: start; -webkit-overflow-scrolling: touch; }
+        /* GRID SCROLL FIX */
+        .grid { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 10px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
+            gap: 8px; 
+            align-content: start; 
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            overscroll-behavior: contain; /* Prevents scroll chaining to parent */
+        }
+        
         .card { background: #141414; border: 1px solid #222; border-radius: 6px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; height: 100px; position: relative; }
         .c-img { flex: 1; background: radial-gradient(circle, #222, #000); display: flex; align-items: center; justify-content: center; position: relative; }
         .c-img img { max-width: 80%; max-height: 80%; object-fit: contain; z-index: 2; }
@@ -139,22 +181,31 @@
 
         /* --- MOBILE MEDIA QUERIES --- */
         @media (max-width: 768px) {
+            /* Stack Logic */
             .app-body { flex-direction: column; }
+            
+            /* Sidebar becomes overlay */
             .sidebar { 
-                display: none; /* Hidden by default on mobile */
-                position: absolute; top: 32px; left: 0; right: 0; bottom: 30px;
-                z-index: 500; height: auto; border-right: none;
+                display: none; position: absolute; 
+                top: 0; left: 0; right: 0; bottom: 0; 
+                z-index: 999; height: 100%; width: 100%;
+                background: rgba(0,0,0,0.95);
             }
             .sidebar.mobile-open { display: flex; }
+            
+            /* Fix Player Height to 40% of Screen, List takes 60% */
+            .player-section { height: 40vh; flex-shrink: 0; }
+            .browser-section { flex: 1; height: 60vh; }
+            
+            /* Mobile Header */
             .mobile-menu-btn { 
-                display: block !important; position: absolute; top: 0; left: 0; z-index: 300; 
-                background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; font-size: 12px;
-                border: none; cursor: pointer;
+                display: block !important; position: absolute; top: 2px; left: 2px; z-index: 300; 
+                background: rgba(0,0,0,0.5); color: #fff; padding: 6px 12px; font-size: 14px; border-radius: 4px;
+                border: 1px solid #444; cursor: pointer; font-weight: bold;
             }
-            .player-section { height: 35vh; } /* Video takes 35% height */
-            .browser-section { flex: 1; }
+            
             .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 5px; }
-            .player-actions::-webkit-scrollbar { height: 0px; } /* Hide scrollbar for cleaner look */
+            .player-actions::-webkit-scrollbar { height: 0px; } 
         }
         .mobile-menu-btn { display: none; }
 
@@ -176,7 +227,7 @@
         <div class="brand">
             <svg class="icon" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3 .35 0 .69.07 1 .18V6h5v2h-3v7.03A3.003 3.003 0 0 1 11 18c-1.66 0-3-1.34-3-3z"/></svg>
             <div>DAR<span>TV</span></div>
-            <button onclick="toggleSidebar()" style="margin-left:auto; background:none; border:none; color:#fff;">✕</button>
+            <button onclick="toggleSidebar()" style="margin-left:auto; background:none; border:none; color:#fff; font-size: 20px;">✕</button>
         </div>
         <div class="tools">
             <div class="cors-toggle" id="corsBtn" onclick="toggleCors()">
@@ -295,7 +346,10 @@
     };
 
     window.onload = () => { 
-        renderNav(); renderCats(); loadFavorites(); startNewsEngine();
+        renderNav(); 
+        renderCats(); 
+        loadFavorites(); 
+        startNewsEngine();
     };
 
     // --- PLAYER LOGIC (HLS NATIVE + ADVANCED) ---
@@ -321,7 +375,7 @@
             video.src = ch.url;
             video.addEventListener('loadedmetadata', () => { video.play(); showLoader(false); setMeta(ch.name, "Live HD"); });
         }
-        if(window.innerWidth < 768) toggleSidebar(); // Auto-close on mobile
+        if(window.innerWidth < 768) toggleSidebar(); 
     }
 
     function playLocalVideo(url, name) {
