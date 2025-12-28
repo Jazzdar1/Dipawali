@@ -2,261 +2,195 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DarTV - Live Command</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DarTV - Mobile Advanced</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/6.6.6/css/flag-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css">
     
     <style>
         /* --- RESET --- */
-        :root {
-            --bg-body: #050505;
-            --bg-side: #0a0a0a;
-            --primary: #3b82f6; /* Blue */
-            --accent: #dc2626; /* Red */
-            --border: 1px solid #222;
-        }
-        * { box-sizing: border-box; outline: none; }
-        body {
-            margin: 0; padding: 0;
-            background: var(--bg-body);
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* --- ICONS --- */
+        :root { --bg-body: #050505; --bg-side: #0a0a0a; --primary: #3b82f6; --accent: #dc2626; --border: 1px solid #222; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; background: var(--bg-body); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .icon { width: 18px; height: 18px; fill: currentColor; }
 
-        /* --- TOP TICKER (KASHMIR) --- */
-        .ticker-top-box {
-            height: 32px;
-            background: #450a0a; /* Dark Red */
-            border-bottom: 1px solid #333;
-            display: flex;
-            flex-shrink: 0;
-            z-index: 200;
-        }
-        .tt-label {
-            background: #dc2626; color: white;
-            font-size: 11px; font-weight: 900;
-            padding: 0 15px;
-            display: flex; align-items: center;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.5);
-            z-index: 2;
-        }
-        .tt-text-wrap {
-            flex: 1; overflow: hidden; position: relative; display: flex; align-items: center;
-        }
-        .tt-text {
-            white-space: nowrap; font-size: 13px; font-weight: 600; color: #fca5a5;
-            display: inline-block; padding-left: 100%;
-            animation: scroll 120s linear infinite; /* Slow Speed */
-        }
-
-        /* --- APP BODY --- */
-        .app-body {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: 280px; min-width: 280px;
-            background: var(--bg-side);
-            border-right: var(--border);
-            display: flex; flex-direction: column;
-            z-index: 100;
-        }
+        /* --- TICKERS --- */
+        .ticker-top-box { height: 32px; background: #450a0a; border-bottom: 1px solid #333; display: flex; flex-shrink: 0; z-index: 200; }
+        .tt-label { background: #dc2626; color: white; font-size: 11px; font-weight: 900; padding: 0 10px; display: flex; align-items: center; box-shadow: 4px 0 10px rgba(0,0,0,0.5); z-index: 2; white-space: nowrap; }
+        .tt-text-wrap { flex: 1; overflow: hidden; position: relative; display: flex; align-items: center; }
+        .tt-text { white-space: nowrap; font-size: 13px; font-weight: 600; color: #fca5a5; display: inline-block; padding-left: 100%; animation: scroll 120s linear infinite; }
         
-        .brand {
-            padding: 20px; font-size: 26px; font-weight: 900;
-            border-bottom: var(--border);
-            display: flex; align-items: center; gap: 10px;
-            background: #000;
-        }
-        .brand span { color: var(--primary); }
+        .ticker-bot-box { height: 30px; background: #0c4a6e; border-top: 1px solid #333; border-bottom: 1px solid #333; display: flex; flex-shrink: 0; z-index: 10; }
+        .tb-label { background: #0284c7; color: white; font-size: 11px; font-weight: 900; padding: 0 10px; display: flex; align-items: center; z-index: 2; box-shadow: 4px 0 10px rgba(0,0,0,0.5); white-space: nowrap; }
+        .tb-text { white-space: nowrap; font-size: 13px; font-weight: 600; color: #bae6fd; display: inline-block; padding-left: 100%; animation: scroll 100s linear infinite; }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-        .tools { padding: 15px; background: #111; border-bottom: var(--border); }
-        .cors-toggle {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 12px; background: #1a1a1a; border: 1px solid #333;
-            border-radius: 4px; cursor: pointer; margin-bottom: 10px;
-        }
+        /* --- APP STRUCTURE --- */
+        .app-body { flex: 1; display: flex; overflow: hidden; }
+        
+        /* SIDEBAR */
+        .sidebar { width: 280px; min-width: 280px; background: var(--bg-side); border-right: var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s ease; }
+        .brand { padding: 15px; font-size: 24px; font-weight: 900; border-bottom: var(--border); display: flex; align-items: center; gap: 10px; background: #000; }
+        .brand span { color: var(--primary); }
+        .tools { padding: 10px; background: #111; border-bottom: var(--border); }
+        .cors-toggle { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; cursor: pointer; margin-bottom: 8px; }
         .cors-toggle.active { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
         .cors-indicator { width: 10px; height: 10px; background: #444; border-radius: 50%; }
         .cors-toggle.active .cors-indicator { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
-        .cors-txt { font-size: 12px; color: #ccc; }
-        
-        .tool-btn {
-            width: 100%; background: #222; border: 1px solid #333; color: #ccc;
-            padding: 8px; margin-bottom: 8px; border-radius: 4px; cursor: pointer;
-            font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .tool-btn:hover { background: #333; color: white; }
-
+        .cors-txt { font-size: 11px; color: #ccc; }
+        .tool-btn { width: 100%; background: #222; border: 1px solid #333; color: #ccc; padding: 8px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .ext-box { display: flex; gap: 5px; }
         .ext-inp { flex: 1; background: #000; border: 1px solid #333; color: white; padding: 6px; border-radius: 4px; font-size: 12px; }
         .ext-btn { background: var(--primary); border: none; color: white; padding: 0 10px; border-radius: 4px; cursor: pointer; }
-
         .tabs { display: flex; border-bottom: var(--border); }
-        .tab { flex: 1; padding: 12px; background: transparent; color: #777; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; }
+        .tab { flex: 1; padding: 10px; background: transparent; color: #777; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; font-size: 12px; }
         .tab.active { color: white; border-bottom-color: var(--primary); background: #151515; }
-
-        .search { padding: 10px; border-bottom: var(--border); }
+        .search { padding: 8px; border-bottom: var(--border); }
         .search-inp { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; }
-
-        .nav-list { flex: 1; overflow-y: auto; }
+        .nav-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .nav-item { padding: 10px 15px; border-bottom: 1px solid #1a1a1a; cursor: pointer; color: #ccc; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .nav-item:hover { background: #222; color: white; }
         .nav-item.active { background: var(--primary); color: white; }
 
         /* --- MAIN AREA --- */
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            background: #000;
-        }
+        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #000; }
 
         /* PLAYER SECTION */
         .player-section {
-            height: 55%; 
+            height: 60%; 
             display: flex; flex-direction: column;
-            background: #000;
-            position: relative;
-            flex-shrink: 0; 
+            background: #000; 
+            position: relative; flex-shrink: 0; 
+            overflow: hidden;
         }
 
         .video-wrapper {
-            flex: 1;
-            position: relative;
+            flex: 1; position: relative;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
+            overflow: hidden; background: #000;
         }
-        video { width: 100%; height: 100%; }
 
-        /* Startup Overlay */
+        video { width: 100%; height: 100%; max-height: 100%; background: #000; }
+
         .startup {
             position: absolute; inset: 0; background: #000; z-index: 20;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.5s; pointer-events: none; opacity: 1;
         }
-        .big-logo { font-size: 50px; font-weight: 900; letter-spacing: -2px; margin-bottom: 10px; }
+        .big-logo { font-size: 40px; font-weight: 900; letter-spacing: -2px; margin-bottom: 10px; }
         .big-logo span { color: var(--primary); }
         .loader { width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
         @keyframes spin { to {transform: rotate(360deg);} }
 
-        /* BOTTOM TICKER (WORLD) */
-        .ticker-bot-box {
-            height: 30px;
-            background: #0c4a6e; /* Dark Blue */
-            border-top: 1px solid #333;
-            border-bottom: 1px solid #333;
-            display: flex;
-            flex-shrink: 0;
-            z-index: 10;
+        /* Stats Overlay */
+        .stats-overlay {
+            position: absolute; top: 10px; left: 10px; 
+            background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 4px;
+            font-family: monospace; font-size: 11px; color: #00ff00;
+            z-index: 30; pointer-events: none; display: none;
         }
-        .tb-label {
-            background: #0284c7; color: white;
-            font-size: 11px; font-weight: 900;
-            padding: 0 15px; display: flex; align-items: center;
-            z-index: 2; box-shadow: 4px 0 10px rgba(0,0,0,0.5);
-        }
-        .tb-text {
-            white-space: nowrap; font-size: 13px; font-weight: 600; color: #bae6fd;
-            display: inline-block; padding-left: 100%;
-            animation: scroll 100s linear infinite;
-        }
-        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-        /* BROWSER SECTION */
-        .browser-section {
-            flex: 1; 
-            display: flex; flex-direction: column;
-            background: #050505;
-            min-height: 0; 
-        }
+        /* --- BROWSER --- */
+        .browser-section { flex: 1; display: flex; flex-direction: column; background: #050505; min-height: 0; }
         
-        .controls {
-            height: 40px; background: #111; border-bottom: var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
+        /* Updated Control Bar with Advanced Buttons & Scroll for Mobile */
+        .controls { 
+            height: 45px; background: #111; border-bottom: var(--border); 
+            display: flex; align-items: center; padding: 0 10px; gap: 10px;
         }
-        .meta { display: flex; align-items: center; gap: 10px; }
+        .meta { display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 100px; }
         .meta img { width: 24px; height: 24px; background: #222; border-radius: 3px; object-fit: contain; }
-        .meta-info div:first-child { font-weight: bold; font-size: 13px; }
+        .meta-info { overflow: hidden; }
+        .meta-info div:first-child { font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .meta-info div:last-child { font-size: 10px; color: var(--primary); }
-        .asp-btn { background: #222; border: 1px solid #333; color: #ccc; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        
+        .player-actions { 
+            display: flex; gap: 5px; margin-left: auto; 
+            overflow-x: auto; white-space: nowrap; /* Scrollable actions on small screens */
+            padding-bottom: 2px; /* Scrollbar spacing */
+        }
+        .act-btn { 
+            background: #222; border: 1px solid #333; color: #ccc; 
+            padding: 5px 8px; border-radius: 4px; cursor: pointer; 
+            font-size: 11px; display: inline-flex; align-items: center; gap: 4px; 
+            flex-shrink: 0; /* Don't squash */
+        }
+        .act-btn:hover { background: #333; color: white; border-color: #555; }
+        .act-btn.active { color: #00ff00; border-color: #00ff00; }
 
-        .rail { padding: 8px; background: #0a0a0a; border-bottom: var(--border); display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
-        .chip { padding: 4px 12px; background: #222; border: 1px solid #333; border-radius: 20px; font-size: 11px; color: #ccc; white-space: nowrap; cursor: pointer; }
+        .quality-select {
+            background: #222; color: #fff; border: 1px solid #333;
+            padding: 3px; border-radius: 4px; font-size: 11px;
+            outline: none; cursor: pointer; display: none;
+        }
+
+        .rail { padding: 8px; background: #0a0a0a; border-bottom: var(--border); display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+        .chip { padding: 4px 12px; background: #222; border: 1px solid #333; border-radius: 20px; font-size: 11px; color: #ccc; white-space: nowrap; cursor: pointer; flex-shrink: 0; }
         .chip:hover { background: #333; color: white; }
-
-        .grid {
-            flex: 1; overflow-y: auto; padding: 15px;
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 10px; align-content: start;
-        }
-        .card {
-            background: #141414; border: 1px solid #222; border-radius: 6px;
-            overflow: hidden; cursor: pointer; display: flex; flex-direction: column; height: 110px;
-            position: relative; transition: transform 0.2s;
-        }
-        .card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        
+        .grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; align-content: start; -webkit-overflow-scrolling: touch; }
+        .card { background: #141414; border: 1px solid #222; border-radius: 6px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; height: 100px; position: relative; }
         .c-img { flex: 1; background: radial-gradient(circle, #222, #000); display: flex; align-items: center; justify-content: center; position: relative; }
         .c-img img { max-width: 80%; max-height: 80%; object-fit: contain; z-index: 2; }
         .fb { position: absolute; font-size: 20px; color: #333; z-index: 1; font-weight: 900; }
-        .c-inf { height: 30px; padding: 0 8px; background: #1a1a1a; display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+        .c-inf { height: 28px; padding: 0 6px; background: #1a1a1a; display: flex; align-items: center; justify-content: space-between; font-size: 10px; }
         .fav { color: #444; } .fav.active { color: #eab308; }
+
+        /* --- MOBILE MEDIA QUERIES --- */
+        @media (max-width: 768px) {
+            .app-body { flex-direction: column; }
+            .sidebar { 
+                display: none; /* Hidden by default on mobile */
+                position: absolute; top: 32px; left: 0; right: 0; bottom: 30px;
+                z-index: 500; height: auto; border-right: none;
+            }
+            .sidebar.mobile-open { display: flex; }
+            .mobile-menu-btn { 
+                display: block !important; position: absolute; top: 0; left: 0; z-index: 300; 
+                background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; font-size: 12px;
+                border: none; cursor: pointer;
+            }
+            .player-section { height: 35vh; } /* Video takes 35% height */
+            .browser-section { flex: 1; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 5px; }
+            .player-actions::-webkit-scrollbar { height: 0px; } /* Hide scrollbar for cleaner look */
+        }
+        .mobile-menu-btn { display: none; }
 
     </style>
 </head>
 <body>
 
+<button class="mobile-menu-btn" onclick="toggleSidebar()">☰ MENU</button>
+
 <div class="ticker-top-box">
     <div class="tt-label">J&K LIVE</div>
     <div class="tt-text-wrap">
-        <div class="tt-text" id="kashmirTicker">
-            Loading Live J&K Updates...
-        </div>
+        <div class="tt-text" id="kashmirTicker">Loading Live Updates...</div>
     </div>
 </div>
 
 <div class="app-body">
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="brand">
             <svg class="icon" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3 .35 0 .69.07 1 .18V6h5v2h-3v7.03A3.003 3.003 0 0 1 11 18c-1.66 0-3-1.34-3-3z"/></svg>
             <div>DAR<span>TV</span></div>
+            <button onclick="toggleSidebar()" style="margin-left:auto; background:none; border:none; color:#fff;">✕</button>
         </div>
-
         <div class="tools">
             <div class="cors-toggle" id="corsBtn" onclick="toggleCors()">
-                <span class="cors-txt">Unblock Stream (CORS)</span>
+                <span class="cors-txt">Unblock (CORS)</span>
                 <div class="cors-indicator"></div>
             </div>
-
-            <button class="tool-btn" onclick="window.open('https://drive.google.com/drive/folders/1T6cQGWCggMAuq6i2QfdJLEfkysyNeD4W','_blank')">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M19.46 9.63l-4.22-7.33c-.45-.78-1.27-1.25-2.17-1.25H6.93c-.9 0-1.72.47-2.17 1.25L.54 9.63c-.45.78-.45 1.76 0 2.54l4.22 7.33c.45.78 1.27 1.25 2.17 1.25h6.15c.9 0 1.72-.47 2.17-1.25l4.22-7.33c.45-.78.45-1.76 0-2.54z"/></svg>
-                Open My Drive
-            </button>
-
-            <button class="tool-btn" onclick="document.getElementById('localFile').click()">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
-                Upload Local File
-            </button>
+            <button class="tool-btn" onclick="window.open('https://drive.google.com/drive/folders/1T6cQGWCggMAuq6i2QfdJLEfkysyNeD4W','_blank')">Open My Drive</button>
+            <button class="tool-btn" onclick="document.getElementById('localFile').click()">Upload File</button>
             <input type="file" id="localFile" style="display:none" accept=".m3u,.m3u8,.ts,.mp4,.mkv" onchange="handleFile(this)">
-
             <div class="ext-box">
-                <input type="text" id="extUrl" class="ext-inp" placeholder="Paste .m3u link...">
+                <input type="text" id="extUrl" class="ext-inp" placeholder="Link...">
                 <button class="ext-btn" onclick="loadExt()">GO</button>
             </div>
         </div>
-
         <div class="tabs">
             <button class="tab active" onclick="setTab('countries',this)">Countries</button>
             <button class="tab" onclick="setTab('languages',this)">Languages</button>
@@ -271,21 +205,20 @@
         
         <div class="player-section">
             <div class="video-wrapper">
+                <div class="stats-overlay" id="statsOverlay">Res: - | Speed: -</div>
                 <div class="startup" id="overlay">
                     <div class="big-logo">DAR<span>TV</span></div>
                     <div class="loader"></div>
-                    <div style="margin-top:10px; color:#888; font-size:12px;">ESTABLISHING CONNECTION</div>
+                    <div style="margin-top:10px; color:#888; font-size:12px;">READY</div>
                 </div>
-                <video id="video" controls autoplay></video>
+                <video id="video" controls autoplay playsinline></video>
             </div>
         </div>
 
         <div class="ticker-bot-box">
             <div class="tb-label">WORLD LIVE</div>
             <div class="tt-text-wrap">
-                <div class="tb-text" id="worldTicker">
-                    Connecting to Global News Feed...
-                </div>
+                <div class="tb-text" id="worldTicker">Connecting...</div>
             </div>
         </div>
 
@@ -295,21 +228,36 @@
                     <img src="" id="metaImg" style="opacity:0">
                     <div class="meta-info">
                         <div id="metaTitle">DarTV Live</div>
-                        <div id="metaStat">Select a Channel</div>
+                        <div id="metaStat">Select Channel</div>
                     </div>
                 </div>
-                <button class="asp-btn" onclick="toggleRatio()">⛶ Fit/Fill</button>
+                <div class="player-actions">
+                    <select id="qualitySelect" class="quality-select" onchange="changeQuality(this.value)"></select>
+                    <button class="act-btn" onclick="toggleBoost()" id="boostBtn">🔊+</button>
+                    <button class="act-btn" onclick="togglePiP()">📺</button>
+                    <button class="act-btn" onclick="toggleStats()">📶</button>
+                    <button class="act-btn" onclick="takeSnap()">📷</button>
+                    <button class="act-btn" onclick="toggleRatio()">⛶</button>
+                </div>
             </div>
             <div class="rail" id="categories"></div>
             <div class="grid" id="grid">
-                <div style="text-align:center; color:#666; margin-top:20px; grid-column:1/-1;">Select a Country or Language to load channels.</div>
+                <div style="text-align:center; color:#666; margin-top:20px; grid-column:1/-1;">Select a Country/Language</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- DATABASE ---
+    // --- VARIABLES ---
+    let hls = null; 
+    let channels=[], favorites=JSON.parse(localStorage.getItem('dartv_final_favs'))||[], activeTab='countries', cors=false;
+    let ratio=0;
+    // Advanced Vars
+    let audioCtx, source, gainNode;
+    let isBoosted = false;
+
+    // --- FULL DATABASE ---
     const DB = {
         countries: [
             {c:"af",n:"Afghanistan"},{c:"al",n:"Albania"},{c:"dz",n:"Algeria"},{c:"ad",n:"Andorra"},{c:"ao",n:"Angola"},
@@ -346,84 +294,118 @@
         ]
     };
 
-    let channels=[], favorites=JSON.parse(localStorage.getItem('dartv_final_favs'))||[], activeTab='countries', cors=false, hls=null, ratio=0;
-
     window.onload = () => { 
-        renderNav(); 
-        renderCats(); 
-        loadFavorites(); 
-        startNewsEngine(); // Start Live News
+        renderNav(); renderCats(); loadFavorites(); startNewsEngine();
     };
 
-    // --- LIVE NEWS ENGINE ---
-    async function startNewsEngine() {
-        updateWorldNews();
-        updateKashmirNews();
-        setInterval(updateWorldNews, 300000); // Update every 5 mins
-        setInterval(updateKashmirNews, 300000);
+    // --- PLAYER LOGIC (HLS NATIVE + ADVANCED) ---
+    function playChannel(ch) {
+        setMeta(ch.name, "Buffering..."); showLoader(true);
+        let m=document.getElementById('metaImg'); if(ch.logo){m.src=ch.logo;m.style.opacity=1;}else m.style.opacity=0;
+        let video = document.getElementById('video');
+        document.getElementById('qualitySelect').style.display = 'none';
+
+        if (Hls.isSupported()) {
+            if(hls) hls.destroy();
+            hls = new Hls();
+            hls.loadSource(ch.url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
+                video.play().catch(e=>console.log("Autoplay blocked"));
+                showLoader(false); setMeta(ch.name, "Live HD");
+                setupQualitySelector(data.levels);
+            });
+            hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) setMeta(ch.name, "Stream Offline"); });
+            setInterval(() => { if(!video.paused) updateStats(); }, 1000);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = ch.url;
+            video.addEventListener('loadedmetadata', () => { video.play(); showLoader(false); setMeta(ch.name, "Live HD"); });
+        }
+        if(window.innerWidth < 768) toggleSidebar(); // Auto-close on mobile
     }
 
-    async function updateWorldNews() {
-        const el = document.getElementById('worldTicker');
-        try {
-            // Fetch BBC RSS via Proxy (No API Key needed)
-            const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml');
-            const data = await res.json();
-            if(data.status === 'ok') {
-                const headlines = data.items.slice(0, 10).map(item => `• ${item.title.toUpperCase()}`).join(' ');
-                el.innerText = `🔴 LIVE: ${headlines}`;
-            }
-        } catch(e) {
-            // Fallback if API fails
-            el.innerText = "🔴 LIVE: Global Markets Rally • Tech Sector Booms • Space Mission Success • Stay Tuned for Updates...";
+    function playLocalVideo(url, name) {
+        setMeta(name, "Local File"); showLoader(true);
+        let v = document.getElementById('video');
+        if(hls) { hls.destroy(); hls=null; }
+        v.src = url; v.play(); showLoader(false);
+    }
+
+    // --- ADVANCED FEATURES ---
+    function setupQualitySelector(levels) {
+        const sel = document.getElementById('qualitySelect');
+        if (levels.length > 1) {
+            sel.innerHTML = '<option value="-1">Auto</option>';
+            levels.forEach((lvl, index) => {
+                const opt = document.createElement('option');
+                opt.value = index; opt.text = lvl.height + 'p';
+                sel.appendChild(opt);
+            });
+            sel.style.display = 'block';
+        } else { sel.style.display = 'none'; }
+    }
+    function changeQuality(levelIndex) { if(hls) hls.currentLevel = parseInt(levelIndex); }
+
+    function toggleBoost() {
+        const btn = document.getElementById('boostBtn');
+        const vid = document.getElementById('video');
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            source = audioCtx.createMediaElementSource(vid);
+            gainNode = audioCtx.createGain();
+            source.connect(gainNode); gainNode.connect(audioCtx.destination);
+        }
+        if (!isBoosted) {
+            gainNode.gain.value = 2.0; isBoosted = true;
+            btn.classList.add('active');
+        } else {
+            gainNode.gain.value = 1.0; isBoosted = false;
+            btn.classList.remove('active');
         }
     }
 
-    async function updateKashmirNews() {
-        const el = document.getElementById('kashmirTicker');
-        try {
-            // Get Weather for Srinagar (Open-Meteo API - Free)
-            const weatherRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=34.0837&longitude=74.7973&current_weather=true');
-            const wData = await weatherRes.json();
-            const temp = wData.current_weather.temperature;
-            
-            // Generate Dynamic Time
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            const news = `⚠️ TRAFFIC UPDATE [${time}]: NH-44 Open for LMV, HMV restricted • Mughal Road Closed • 
-            ❄️ WEATHER: Srinagar ${temp}°C, Gulmarg -4°C • 
-            📢 J&K: Winter vacation announcement expected soon • Power curtailment schedule revised • 
-            Sports: Local football finals at TRC Ground Sunday.`;
-            
-            el.innerText = news;
-        } catch(e) {
-            el.innerText = "⚠️ TRAFFIC: NH-44 Open • ❄️ WEATHER: Srinagar Cold Wave Continues • 📢 J&K: Admin reviews winter preparedness.";
+    async function togglePiP() {
+        const vid = document.getElementById('video');
+        if (document.pictureInPictureElement) await document.exitPictureInPicture();
+        else if (document.pictureInPictureEnabled) await vid.requestPictureInPicture();
+    }
+
+    function takeSnap() {
+        const vid = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
+        canvas.getContext('2d').drawImage(vid, 0, 0);
+        const a = document.createElement('a');
+        a.download = 'capture.png'; a.href = canvas.toDataURL(); a.click();
+    }
+
+    function toggleStats() {
+        const s = document.getElementById('statsOverlay');
+        s.style.display = (s.style.display === 'none' || s.style.display === '') ? 'block' : 'none';
+    }
+    function updateStats() {
+        const vid = document.getElementById('video');
+        const s = document.getElementById('statsOverlay');
+        if(s.style.display === 'block') {
+            s.innerText = `Res: ${vid.videoWidth}x${vid.videoHeight} | Time: ${vid.currentTime.toFixed(0)}s`;
         }
     }
 
+    // --- UTILS ---
+    function toggleRatio() { ratio = (ratio + 1) % 3; document.getElementById('video').style.objectFit = ['contain', 'cover', 'fill'][ratio]; }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); }
     function setTab(m,b) { activeTab=m; document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderNav(); }
     function toggleCors() { cors=!cors; document.getElementById('corsBtn').classList.toggle('active'); }
-    function toggleRatio() { ratio=(ratio+1)%3; document.getElementById('video').style.objectFit=['contain','cover','fill'][ratio]; }
     function loadExt() { let u=document.getElementById('extUrl').value.trim(); if(u) loadPlaylist(u,"External"); }
-
     function handleFile(input) {
-        let file = input.files[0];
-        if (!file) return;
-        let name = file.name.toLowerCase();
-        showLoader(true); setMeta(file.name, "Reading File...");
-        if (name.endsWith('.m3u') || name.endsWith('.m3u8')) {
+        let file = input.files[0]; if (!file) return;
+        if (file.name.endsWith('.m3u') || file.name.endsWith('.m3u8')) {
             let reader = new FileReader();
-            reader.onload = function(e) { parseM3U(e.target.result); setMeta("Local Playlist", `${channels.length} Channels Loaded`); };
+            reader.onload = function(e) { parseM3U(e.target.result); setMeta("Local Playlist", `${channels.length} Channels`); };
             reader.readAsText(file);
-        } else {
-            let url = URL.createObjectURL(file);
-            let v = document.getElementById('video');
-            if(hls) { hls.destroy(); hls=null; }
-            v.src = url; v.play();
-            setMeta(file.name, "Local Video Playing"); showLoader(false);
-        }
+        } else { playLocalVideo(URL.createObjectURL(file), file.name); }
     }
-
     function renderNav() {
         const l=document.getElementById('navList'); l.innerHTML='';
         let f=document.createElement('div'); f.className='nav-item'; f.innerHTML='<span style="color:gold">★</span> Favorites'; f.onclick=loadFavorites; l.appendChild(f);
@@ -436,36 +418,26 @@
                 document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active');
                 let type=activeTab==='countries'?'countries':'languages';
                 loadPlaylist(`https://iptv-org.github.io/iptv/${type}/${i.c}.m3u`, i.n);
+                if(window.innerWidth < 768) toggleSidebar();
             };
             l.appendChild(e);
         });
     }
-
     function renderCats() {
         const r=document.getElementById('categories');
         DB.cats.forEach(c=>{
             let e=document.createElement('div'); e.className='chip'; e.innerText=c.n;
-            e.onclick=()=>loadPlaylist(`https://iptv-org.github.io/iptv/categories/${c.id}.m3u`, c.n);
+            e.onclick=()=>{ loadPlaylist(`https://iptv-org.github.io/iptv/categories/${c.id}.m3u`, c.n); };
             r.appendChild(e);
         });
     }
-
     async function loadPlaylist(url, title, tryProxy=false) {
         setMeta("Loading...", `Fetching ${title}`); showLoader(true);
-        const g=document.getElementById('grid');
         let fetchUrl = (cors || tryProxy) ? `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` : url;
         try {
-            let res = await fetch(fetchUrl);
-            if(!res.ok) throw new Error();
-            let txt = await res.text();
-            parseM3U(txt);
-            setMeta(title, `${channels.length} Channels`);
-        } catch(e) {
-            if(!tryProxy && !cors) { loadPlaylist(url, title, true); } 
-            else { g.innerHTML='<div style="text-align:center;padding:20px;color:#888;">Error loading list.</div>'; setMeta("Error", "Load Failed"); showLoader(false); }
-        }
+            let res = await fetch(fetchUrl); if(!res.ok) throw new Error(); let txt = await res.text(); parseM3U(txt); setMeta(title, `${channels.length} Channels`);
+        } catch(e) { if(!tryProxy && !cors) loadPlaylist(url, title, true); else { setMeta("Error", "Load Failed"); showLoader(false); } }
     }
-
     function parseM3U(d) {
         channels=[]; let lines=d.split('\n'), cur={};
         lines.forEach(l=>{
@@ -477,10 +449,9 @@
         });
         renderGrid(channels);
     }
-
     function renderGrid(lst) {
         const g=document.getElementById('grid'); g.innerHTML=''; 
-        if(lst.length===0) { g.innerHTML='<div style="text-align:center;padding:20px;color:#888;">No channels found.</div>'; showLoader(false); return; }
+        if(lst.length===0) { g.innerHTML='<div style="text-align:center;padding:20px;color:#666;">No channels found.</div>'; showLoader(false); return; }
         let lim=lst.slice(0,500); 
         lim.forEach(ch=>{
             let isFav=favorites.some(f=>f.url===ch.url);
@@ -491,25 +462,26 @@
         });
         showLoader(false);
     }
-
-    function playChannel(ch) {
-        let v=document.getElementById('video'); setMeta(ch.name,"Buffering..."); showLoader(true);
-        let m=document.getElementById('metaImg'); if(ch.logo){m.src=ch.logo;m.style.opacity=1;}else m.style.opacity=0;
-        if(Hls.isSupported()) {
-            if(hls) hls.destroy(); hls=new Hls(); hls.loadSource(ch.url); hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED,()=>{ v.play(); showLoader(false); setMeta(ch.name,"Live HD"); });
-            hls.on(Hls.Events.ERROR,()=>{ setMeta(ch.name,"Offline / Error"); });
-        } else if(v.canPlayType('application/vnd.apple.mpegurl')) {
-            v.src=ch.url; v.play(); showLoader(false); setMeta(ch.name,"Live HD");
-        }
-    }
-
     function setMeta(t,s){ document.getElementById('metaTitle').innerText=t; document.getElementById('metaStat').innerText=s; }
     function showLoader(b){ document.getElementById('overlay').style.opacity=b?1:0; document.getElementById('overlay').style.pointerEvents=b?'auto':'none'; }
     function toggleFav(c){ let i=favorites.findIndex(f=>f.url===c.url); if(i>-1)favorites.splice(i,1); else favorites.push(c); localStorage.setItem('dartv_final_favs',JSON.stringify(favorites)); renderGrid(channels); }
     function loadFavorites(){ channels=favorites; renderGrid(favorites); setMeta("Favorites",`${favorites.length} Saved`); }
     function filterNav(){ let q=document.getElementById('sideSearch').value.toLowerCase(); document.querySelectorAll('.s-item').forEach(x=>{ x.style.display=x.getAttribute('data-q').includes(q)?'flex':'none'; }); }
-
+    async function startNewsEngine() { updateWorldNews(); updateKashmirNews(); setInterval(updateWorldNews, 300000); setInterval(updateKashmirNews, 300000); }
+    async function updateWorldNews() {
+        try {
+            const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml');
+            const data = await res.json();
+            if(data.status === 'ok') document.getElementById('worldTicker').innerText = `🔴 LIVE: ${data.items.slice(0,8).map(i=>`• ${i.title.toUpperCase()}`).join(' ')}`;
+        } catch(e) { document.getElementById('worldTicker').innerText = "🔴 LIVE: Global News Feed Connecting..."; }
+    }
+    async function updateKashmirNews() {
+        try {
+            const w = await fetch('https://api.open-meteo.com/v1/forecast?latitude=34.08&longitude=74.79&current_weather=true').then(r=>r.json());
+            const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            document.getElementById('kashmirTicker').innerText = `⚠️ TRAFFIC [${t}]: NH-44 Open • ❄️ SRINAGAR: ${w.current_weather.temperature}°C • 📢 LATEST: Schools open normal time.`;
+        } catch(e) { document.getElementById('kashmirTicker').innerText = "⚠️ J&K UPDATES: Loading data..."; }
+    }
 </script>
 </body>
 </html>
