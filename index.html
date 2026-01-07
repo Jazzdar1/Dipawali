@@ -1,122 +1,182 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DarTV - Speed & Quality</title>
+    <title>DarTV - Hotstar Flawless</title>
     
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* --- RESET --- */
-        :root { --bg: #050505; --side: #0a0a0a; --primary: #3b82f6; --accent: #dc2626; --border: 1px solid #222; }
+        /* --- RESET & HOTSTAR THEME --- */
+        :root { 
+            --bg-body: #0f1014; 
+            --bg-side: #16181f; 
+            --primary: #1f80e0; 
+            --accent: #ffcc00;
+            --sports: #10b981; 
+            --gradient: linear-gradient(to right, #1f80e0, #36c1d7);
+            --border: 1px solid rgba(255, 255, 255, 0.1);
+            --text-gray: #8f98a8;
+        }
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { 
+            margin: 0; padding: 0; 
+            background: var(--bg-body); color: #fff; 
+            font-family: 'Inter', sans-serif; 
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
+        }
 
         /* --- TICKERS --- */
-        .ticker-box { height: 30px; display: flex; flex-shrink: 0; z-index: 50; overflow: hidden; background: #111; border-bottom: 1px solid #333; }
-        .t-lbl { background: var(--accent); color: #fff; font-weight: 900; font-size: 11px; padding: 0 10px; display: flex; align-items: center; z-index: 2; box-shadow: 4px 0 10px #000; }
-        .t-blue { background: #0284c7; }
+        .ticker-group { display: flex; flex-direction: column; flex-shrink: 0; z-index: 50; }
+        .ticker-box { height: 30px; display: flex; overflow: hidden; background: #0c0d11; border-bottom: var(--border); flex-shrink: 0; }
+        .t-lbl { color: #fff; font-weight: 800; font-size: 10px; padding: 0 12px; display: flex; align-items: center; z-index: 2; box-shadow: 5px 0 15px rgba(0,0,0,0.5); letter-spacing: 1px; white-space: nowrap; }
+        
+        .lbl-jk { background: #dc2626; } 
+        .lbl-world { background: #1f80e0; } 
+        .lbl-sports { background: var(--sports); color:#000; } 
+
         .t-wrap { flex: 1; position: relative; display: flex; align-items: center; overflow: hidden; }
-        .t-txt { white-space: nowrap; font-size: 13px; font-weight: 600; display: inline-block; padding-left: 100%; animation: scroll 35s linear infinite; color: #fca5a5; }
-        .tx-blue { color: #bae6fd; }
+        .t-txt { white-space: nowrap; font-size: 12px; font-weight: 600; color: #ccc; display: inline-block; padding-left: 100%; animation: scroll 45s linear infinite; }
         @keyframes scroll { 100% { transform: translateX(-100%); } }
 
         /* --- LAYOUT --- */
         .app-body { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .sidebar { width: 280px; min-width: 280px; background: var(--side); border-right: var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s; }
-        .brand { padding: 15px; font-size: 24px; font-weight: 900; border-bottom: var(--border); display: flex; align-items: center; gap: 10px; background: #000; }
-        .brand span { color: var(--primary); }
-
-        .tools { padding: 10px; background: #111; border-bottom: var(--border); }
-        .mode-row { display: flex; background: #000; border: 1px solid #333; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
-        .mode-btn { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold; color: #777; transition: 0.2s; }
-        .mode-btn.active { background: var(--primary); color: #fff; }
-        .mode-btn:hover:not(.active) { background: #222; }
-
-        .btn-row { display: flex; gap: 5px; margin-bottom: 5px; }
-        .tool-btn { flex: 1; background: #222; border: 1px solid #333; color: #ccc; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 11px; text-align: center; }
-        .tool-btn:hover { background: #333; color: #fff; }
         
-        .cors-toggle { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; cursor: pointer; margin-bottom: 5px; }
-        .cors-ind { width: 8px; height: 8px; background: #444; border-radius: 50%; }
+        /* SIDEBAR (FIXED FLEX LAYOUT) */
+        .sidebar { 
+            width: 280px; min-width: 280px; background: var(--bg-side); border-right: var(--border); 
+            display: flex; flex-direction: column; z-index: 100; 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            height: 100%;
+        }
+        .brand { padding: 15px 20px; font-size: 22px; font-weight: 900; border-bottom: var(--border); display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); letter-spacing: -1px; flex-shrink: 0; }
+        .brand span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .tabs { display: flex; border-bottom: var(--border); }
-        .tab { flex: 1; padding: 10px; background: transparent; color: #777; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; font-size: 11px; text-transform: uppercase; }
-        .tab.active { color: white; border-bottom-color: var(--primary); background: #151515; }
+        /* TOOLS AREA (No Scroll) */
+        .tools { padding: 10px 15px; background: rgba(0,0,0,0.2); border-bottom: var(--border); flex-shrink: 0; }
         
-        .search-box { padding: 8px; border-bottom: var(--border); }
-        .inp { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 6px; border-radius: 4px; font-size: 11px; }
+        .mode-row { display: flex; background: #0b0c10; border: var(--border); border-radius: 30px; overflow: hidden; margin-bottom: 10px; padding: 2px; }
+        .mode-btn { flex: 1; padding: 6px; text-align: center; cursor: pointer; font-size: 11px; font-weight: 700; color: var(--text-gray); transition: 0.3s; border-radius: 20px; }
+        .mode-btn.active { background: var(--gradient); color: #fff; box-shadow: 0 2px 10px rgba(31, 128, 224, 0.4); }
         
-        .nav-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .nav-item { padding: 10px 15px; border-bottom: 1px solid #1a1a1a; cursor: pointer; color: #ccc; font-size: 13px; display: flex; align-items: center; gap: 10px; }
-        .nav-item:hover { background: #222; color: white; }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .tool-btn { flex: 1; background: rgba(255,255,255,0.05); border: var(--border); color: #ccc; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: 600; text-align: center; transition: 0.2s; }
+        .tool-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+        .ext-box { display: flex; gap: 5px; margin-bottom: 8px; }
+        .ext-inp { flex: 1; background: #0b0c10; border: var(--border); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; }
+        .ext-btn { background: var(--primary); border: none; color: white; padding: 0 10px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 10px; }
+
+        .tabs { display: flex; border-bottom: var(--border); padding: 0 5px; flex-shrink: 0; }
+        .tab { flex: 1; padding: 10px; background: transparent; color: var(--text-gray); border: none; cursor: pointer; font-weight: 700; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid transparent; transition: 0.2s; }
+        .tab.active { color: #fff; border-bottom-color: var(--primary); }
+        
+        /* SIDEBAR SEARCH (Pinned) */
+        .search-container { padding: 8px 15px; border-bottom: var(--border); background: var(--bg-side); flex-shrink: 0; }
+        .search-inp { width: 100%; background: #0b0c10; border: var(--border); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; }
+
+        /* SCROLLABLE LIST */
+        .nav-list { 
+            flex: 1; 
+            overflow-y: auto; 
+            height: 0; /* Forces scroll within flex container */
+            -webkit-overflow-scrolling: touch; 
+        }
+        .nav-item { padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; color: #ccc; font-size: 12px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; padding-left: 25px; }
 
         /* --- MAIN AREA --- */
-        .main { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
+        .main { flex: 1; display: flex; flex-direction: column; background: var(--bg-body); position: relative; overflow: hidden; }
         
         /* PLAYER */
-        .player-stage { height: 55%; display: flex; flex-direction: column; position: relative; flex-shrink: 0; background: #000; }
+        .player-stage { height: 55%; display: flex; flex-direction: column; position: relative; flex-shrink: 0; background: #000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         .video-box { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        video { width: 100%; height: 100%; background: #000; }
+        video { width: 100%; height: 100%; }
         
-        /* OVERLAYS (Logo & Viz) */
-        .overlay-center { position: absolute; inset: 0; background: #000; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; opacity: 1; pointer-events: none; }
+        /* OVERLAYS */
+        .overlay-center { position: absolute; inset: 0; background: #000; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; transition: opacity 0.5s; opacity: 1; }
         .overlay-center.hidden { opacity: 0; }
-        .big-logo { font-size: 40px; font-weight: 900; letter-spacing: -2px; margin-bottom: 10px; }
-        .big-logo span { color: var(--primary); }
-        .loader { width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .big-logo { font-size: 50px; font-weight: 900; letter-spacing: -2px; margin-bottom: 15px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        .radio-viz { position: absolute; inset: 0; background: radial-gradient(circle, #222, #000); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 40; }
-        .viz-bars { display: flex; gap: 5px; height: 50px; align-items: flex-end; margin-top: 20px; }
-        .bar { width: 8px; background: var(--primary); animation: bounce 1s infinite; }
-        @keyframes bounce { 0%,100% { height: 10px; } 50% { height: 50px; } }
+        .radio-viz { position: absolute; inset: 0; background: linear-gradient(135deg, #111, #0a0a0a); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        .viz-bars { display: flex; gap: 6px; height: 60px; align-items: flex-end; margin-top: 25px; }
+        .bar { width: 10px; background: var(--gradient); border-radius: 5px; animation: bounce 1s infinite ease-in-out; }
+        @keyframes bounce { 0%,100% { height: 10px; opacity:0.5; } 50% { height: 60px; opacity:1; } }
 
-        /* BROWSER */
-        .browser { flex: 1; display: flex; flex-direction: column; background: #050505; min-height: 0; }
-        .controls { height: 45px; background: #111; border-bottom: var(--border); display: flex; align-items: center; padding: 0 10px; gap: 10px; flex-shrink: 0; }
-        .meta { display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 100px; flex: 1; }
-        .meta img { width: 24px; height: 24px; background: #222; border-radius: 3px; object-fit: contain; }
-        .meta-info div:first-child { font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .meta-info div:last-child { font-size: 10px; color: var(--primary); }
+        /* BROWSER & GRID SYSTEM */
+        .browser { flex: 1; display: flex; flex-direction: column; background: var(--bg-body); min-height: 0; }
+        
+        .controls { height: 50px; background: var(--bg-side); border-bottom: var(--border); display: flex; align-items: center; padding: 0 15px; gap: 10px; flex-shrink: 0; }
+        
+        .meta { display: flex; align-items: center; gap: 12px; overflow: hidden; min-width: 100px; flex: 1; }
+        .meta img { width: 30px; height: 30px; background: rgba(255,255,255,0.1); border-radius: 50%; object-fit: contain; padding: 2px; }
+        .meta-txt div:first-child { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .meta-txt div:last-child { font-size: 10px; color: var(--primary); font-weight: 600; }
         
         .actions { display: flex; gap: 5px; }
-        .act-btn { background: #222; border: 1px solid #333; color: #ccc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-        .act-btn:hover { border-color: var(--primary); color: #fff; }
+        .act-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #ddd; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: 600; transition: 0.2s; }
+        .act-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+        .quality-select { background: #0b0c10; color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; font-size: 10px; outline: none; cursor: pointer; display: none; }
+
+        .rail { padding: 10px; background: rgba(0,0,0,0.2); border-bottom: var(--border); display: flex; gap: 10px; overflow-x: auto; flex-shrink: 0; }
+        .chip { padding: 6px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; font-size: 11px; font-weight: 600; color: #ccc; white-space: nowrap; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+        .chip:hover { background: #fff; color: #000; }
+
+        /* GRID SEARCH WRAPPER (Fixed Layout) */
+        .grid-search-wrap { 
+            padding: 8px 15px; 
+            background: var(--bg-body); 
+            border-bottom: var(--border);
+            flex-shrink: 0; /* Prevents resizing */
+        }
+        .grid-inp { 
+            width: 100%; background: #16181f; border: 1px solid rgba(255,255,255,0.1); 
+            color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 12px; 
+        }
+
+        /* SCROLLABLE GRID */
+        .grid { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            gap: 15px 10px; 
+            align-content: start; 
+            height: 0; /* Critical for Flexbox Scrolling */
+        }
         
-        .quality-select { background: #222; color: #fff; border: 1px solid #333; padding: 4px; border-radius: 4px; font-size: 11px; outline: none; cursor: pointer; display: none; }
+        .card { background: transparent; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.2s; }
+        .card:hover .c-img { transform: scale(1.1); border-color: var(--primary); box-shadow: 0 0 15px rgba(31, 128, 224, 0.6); }
+        .c-img { width: 80px; height: 80px; border-radius: 50%; background: #1f222b; border: 2px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; transition: all 0.3s; position: relative; overflow: hidden; }
+        .c-img img { max-width: 70%; max-height: 70%; object-fit: contain; z-index: 2; }
+        .c-inf { font-size: 11px; font-weight: 500; color: #aaa; text-align: center; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .rail { padding: 8px; background: #0a0a0a; border-bottom: var(--border); display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
-        .chip { padding: 4px 12px; background: #222; border: 1px solid #333; border-radius: 20px; font-size: 11px; color: #ccc; white-space: nowrap; cursor: pointer; flex-shrink: 0; }
-        .chip:hover { background: #333; color: #fff; border-color: var(--primary); }
-
-        .grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; align-content: start; }
-        .card { background: #141414; border: 1px solid #222; border-radius: 6px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; height: 100px; position: relative; }
-        .card:hover { transform: translateY(-2px); border-color: var(--primary); }
-        .c-img { flex: 1; background: radial-gradient(circle, #222, #000); display: flex; align-items: center; justify-content: center; position: relative; }
-        .c-img img { max-width: 80%; max-height: 80%; object-fit: contain; z-index: 2; }
-        .c-inf { height: 28px; padding: 0 6px; background: #1a1a1a; display: flex; align-items: center; justify-content: space-between; font-size: 10px; }
+        /* STATS OVERLAY */
+        .stats-overlay { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); font-family: monospace; font-size: 11px; color: #00ff00; z-index: 30; display: none; }
 
         /* MODALS */
-        .modal { position: fixed; inset: 0; background: #050505; z-index: 2000; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 2000; display: none; flex-direction: column; padding: 30px; overflow-y: auto; }
         .modal.active { display: flex; }
-        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .modal-head h2 { color: var(--primary); margin: 0; }
         
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-        .pdf-card { background: #111; padding: 15px; border: 1px solid #333; text-align: center; cursor: pointer; color: #ccc; border-radius: 6px; }
-        .pdf-card:hover { border-color: var(--primary); color: #fff; }
+        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .pdf-card { background: #1f222b; padding: 20px; border: 1px solid rgba(255,255,255,0.05); text-align: center; cursor: pointer; color: #ccc; border-radius: 12px; transition: 0.2s; }
+        .pdf-card:hover { background: var(--primary); color: #fff; transform: translateY(-5px); }
 
         /* Mobile */
         @media (max-width: 768px) {
             .app-body { flex-direction: column; }
-            .sidebar { display: none; position: absolute; top: 0; bottom: 0; left: 0; width: 85%; z-index: 999; background: #0a0a0a; box-shadow: 2px 0 10px #000; }
+            .sidebar { display: none; position: absolute; top: 0; bottom: 0; left: 0; width: 85%; z-index: 999; background: #16181f; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
             .sidebar.open { display: flex; }
-            .mob-btn { display: block !important; position: absolute; top: 5px; left: 5px; z-index: 300; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; border: 1px solid #fff; border-radius: 4px; }
+            .mob-btn { display: block !important; position: absolute; top: 10px; left: 10px; z-index: 300; background: rgba(0,0,0,0.6); color: #fff; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; backdrop-filter: blur(5px); }
             .player-stage { height: 40vh; }
+            .c-img { width: 70px; height: 70px; }
         }
         .mob-btn { display: none; }
 
@@ -127,30 +187,31 @@
 <button class="mob-btn" onclick="toggleSidebar()">☰</button>
 
 <div class="ticker-box">
-    <div class="t-lbl">J&K LIVE</div>
-    <div class="t-wrap"><div class="t-txt" id="kashmirTicker">Loading Live Updates...</div></div>
+    <div class="t-lbl lbl-jk">J&K LIVE</div>
+    <div class="t-wrap"><div class="t-txt" id="kashmirTicker">Loading Aggregated Updates...</div></div>
 </div>
 
 <div class="app-body">
     <div class="sidebar" id="sidebar">
         <div class="brand">
+            <i class="fa-solid fa-play-circle" style="color:var(--primary)"></i>
             <div>DAR<span>TV</span></div>
             <button onclick="toggleSidebar()" style="margin-left:auto; background:none; border:none; color:#fff; font-size: 18px;">✕</button>
         </div>
 
         <div class="tools">
             <div class="mode-row">
-                <div class="mode-btn active" id="btn-tv" onclick="setMode('tv')">📺 TV Mode</div>
-                <div class="mode-btn" id="btn-radio" onclick="setMode('radio')">📻 Radio Mode</div>
+                <div class="mode-btn active" id="btn-tv" onclick="setMode('tv')">TV Channels</div>
+                <div class="mode-btn" id="btn-radio" onclick="setMode('radio')">Radio FM</div>
             </div>
 
             <div class="btn-row">
-                <button class="tool-btn" onclick="openModal('music')">Music</button>
-                <button class="tool-btn" onclick="openModal('pdf')">PDF Tools</button>
-                <button class="tool-btn" onclick="openModal('info')">Contact</button>
+                <button class="tool-btn" onclick="openModal('music')"><i class="fa-solid fa-music"></i> Music</button>
+                <button class="tool-btn" onclick="openModal('pdf')"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                <button class="tool-btn" onclick="openModal('info')"><i class="fa-solid fa-info-circle"></i> Info</button>
             </div>
             
-            <div class="cors-toggle" onclick="toggleCors()"><span style="font-size:11px;">Unblock Stream</span><div class="cors-ind" id="corsInd"></div></div>
+            <div class="cors-toggle" onclick="toggleCors()" style="padding:8px;background:#0b0c10;border:var(--border);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;cursor:pointer;"><span style="font-size:10px;font-weight:bold;color:#ccc;">Unblock Stream</span><div class="cors-indicator" id="corsInd" style="width:8px;height:8px;background:#444;border-radius:50%;"></div></div>
             
             <div class="btn-row">
                 <button class="tool-btn" onclick="document.getElementById('localFile').click()">Upload</button>
@@ -158,9 +219,9 @@
             </div>
             <input type="file" id="localFile" style="display:none" onchange="handleFile(this)">
             
-            <div class="btn-row">
-                <input type="text" id="linkIn" class="inp" placeholder="Paste Link...">
-                <button class="tool-btn" style="flex:0 0 40px;" onclick="loadLink()">GO</button>
+            <div class="ext-box">
+                <input type="text" id="extUrl" class="ext-inp" placeholder="Paste Link...">
+                <button class="ext-btn" onclick="loadExt()">GO</button>
             </div>
 
             <div class="tabs">
@@ -169,9 +230,10 @@
             </div>
         </div>
 
-        <div class="search-box">
-            <input type="text" id="sideSearch" class="inp" placeholder="Search List..." onkeyup="filterNav()">
+        <div class="search-container">
+            <input type="text" id="sideSearch" class="search-inp" placeholder="Search List..." onkeyup="filterNav()">
         </div>
+        
         <div class="nav-list" id="navList"></div>
     </div>
 
@@ -180,73 +242,82 @@
             <div class="video-box">
                 <div class="overlay-center" id="logoOverlay">
                     <div class="big-logo">DAR<span>TV</span></div>
-                    <div class="loader"></div>
-                    <div style="color:#aaa; font-size:12px; margin-top:10px;">WAITING FOR SIGNAL</div>
+                    <div style="color:var(--text-gray); font-size:11px; letter-spacing:2px; font-weight:700;">PREMIUM STREAMING</div>
                 </div>
                 
+                <div class="stats-overlay" id="statsOverlay">Res: -</div>
                 <video id="video" controls autoplay playsinline></video>
                 
                 <div id="radioViz" class="radio-viz">
-                    <i class="fa-solid fa-music" style="font-size:60px; color:var(--primary);"></i>
-                    <h2 id="radioName" style="color:#fff; margin-top:20px;">Playing Radio</h2>
-                    <div class="viz-bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+                    <i class="fa-solid fa-music" style="font-size:80px; color:var(--primary); text-shadow:0 0 30px var(--primary);"></i>
+                    <h2 id="radioName" style="color:#fff; margin-top:20px; font-weight:300;">Select Station</h2>
+                    <div class="viz-bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
                 </div>
             </div>
         </div>
 
-        <div class="ticker-box" style="background:#0c4a6e; border-top:1px solid #333;">
-            <div class="t-lbl t-blue">WORLD</div>
-            <div class="t-wrap"><div class="t-txt tx-blue" id="worldTicker">Connecting...</div></div>
+        <div class="ticker-box" style="background:#0b0c10; border-top:1px solid rgba(255,255,255,0.05);">
+            <div class="t-lbl lbl-world">WORLD</div>
+            <div class="t-wrap"><div class="t-txt" id="worldTicker" style="color:#8baec9;">Connecting...</div></div>
+        </div>
+
+        <div class="ticker-box">
+            <div class="t-lbl lbl-sports">SPORTS</div>
+            <div class="t-wrap"><div class="t-txt" id="sportsTicker" style="color:#a7f3d0;">Fetching Scores...</div></div>
         </div>
 
         <div class="browser">
             <div class="controls">
                 <div class="meta">
                     <img src="" id="metaImg" style="opacity:0">
-                    <div class="meta-info"><div id="metaTitle">DarTV Live</div><div id="metaStat">Ready</div></div>
+                    <div class="meta-txt"><div id="metaTitle">DarTV Live</div><div id="metaStat">Ready</div></div>
                 </div>
                 <div class="actions">
                     <select id="qualitySelect" class="quality-select" onchange="changeQuality(this.value)"></select>
-                    
                     <button class="act-btn" onclick="reload()">↻</button>
-                    <button class="act-btn" onclick="toggleBoost()" id="boostBtn">🔊+</button>
-                    <button class="act-btn" onclick="togglePiP()">📺</button>
+                    <button class="act-btn" onclick="toggleBoost()" id="boostBtn">BOOST</button>
+                    <button class="act-btn" onclick="togglePiP()">PiP</button>
+                    <button class="act-btn" onclick="toggleStats()">📶</button>
                     <button class="act-btn" onclick="takeSnap()">📷</button>
-                    <button class="act-btn" onclick="toggleRatio()">⛶</button>
+                    <button class="act-btn" onclick="toggleRatio()">FIT</button>
                 </div>
             </div>
             
             <div class="rail" id="categories"></div>
-            <input type="text" id="gridSearch" class="inp" placeholder="Search Grid..." onkeyup="filterGrid()" style="margin:5px 10px; width:auto; flex:1;">
+            
+            <div class="grid-search-wrap">
+                <input type="text" id="gridSearch" class="grid-inp" placeholder="Search Channels..." onkeyup="filterGrid()">
+            </div>
+            
             <div class="grid" id="grid"></div>
         </div>
     </div>
 </div>
 
 <div id="modal-info" class="modal">
-    <div class="modal-head"><h2>Contact Us</h2><button class="tool-btn" style="width:auto;" onclick="closeModal()">CLOSE</button></div>
-    <div style="background:#111; padding:20px; border-radius:8px; border:1px solid #333; max-width:600px; margin:0 auto;">
-        <p><strong>Mobile:</strong> +91 7006686584</p>
-        <p><strong>Email:</strong> darajazb@gmail.com</p>
-        <hr style="border-color:#333; margin:15px 0;">
-        <h3>Privacy Policy</h3>
-        <p style="color:#ccc; font-size:13px;">DarTV aggregates streams. We do not host content.</p>
+    <div class="modal-head"><h2>Contact Us</h2><button class="act-btn" onclick="closeModal()">CLOSE</button></div>
+    <div style="background:#1f222b; padding:25px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-width:600px; margin:0 auto;">
+        <p style="margin-bottom:15px; font-size:14px;"><strong style="color:var(--primary)">Mobile:</strong> +91 7006686584</p>
+        <p style="margin-bottom:15px; font-size:14px;"><strong style="color:var(--primary)">Email:</strong> darajazb@gmail.com</p>
+        <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0;">
+        <h3 style="color:var(--primary);">Privacy Policy</h3>
+        <p style="color:#aaa; font-size:13px; line-height:1.6;">DarTV is a content aggregator. We do not host any streams. No personal data collected.</p>
     </div>
 </div>
 
 <div id="modal-pdf" class="modal">
-    <div class="modal-head"><h2>PDF24 Tools</h2><button class="tool-btn" style="width:auto;" onclick="closeModal()">CLOSE</button></div>
+    <div class="modal-head"><h2>PDF24 Tools</h2><button class="act-btn" onclick="closeModal()">CLOSE</button></div>
     <div class="pdf-grid" id="pdfGrid"></div>
 </div>
 
 <div id="modal-music" class="modal">
-    <div class="modal-head"><h2>Music Player</h2><button class="tool-btn" style="width:auto;" onclick="closeModal()">CLOSE</button></div>
+    <div class="modal-head"><h2>Music Player</h2><button class="act-btn" onclick="closeModal()">CLOSE</button></div>
     <div style="text-align:center;">
-        <div style="width:150px; height:150px; background:#222; border-radius:50%; margin:0 auto 20px; border:4px solid #333;"></div>
-        <audio id="audioPlayer" controls style="width:100%; max-width:500px; margin-bottom:20px;"></audio>
-        <div style="display:flex; gap:5px; max-width:500px; margin:0 auto;">
-            <input type="text" id="musicLink" class="inp" placeholder="Paste Drive/MP3 Link...">
-            <button class="tool-btn" style="width:auto;" onclick="playMusic()">PLAY</button>
+        <div style="width:180px; height:180px; background:#1f222b; border-radius:50%; margin:0 auto 30px; border:6px solid #333; box-shadow:0 0 40px rgba(0,0,0,0.5);"></div>
+        <audio id="audioPlayer" controls style="width:100%; max-width:600px; margin-bottom:20px;"></audio>
+        <div style="display:flex; gap:10px; max-width:600px; margin:0 auto;">
+            <input type="text" id="musicLink" class="ext-inp" placeholder="Paste Drive/MP3 Link...">
+            <button class="ext-btn" onclick="playMusic()">PLAY</button>
         </div>
     </div>
 </div>
@@ -258,8 +329,9 @@
     let cors = false;
     let activeList = 'countries';
     let audioCtx, source, gainNode, isBoosted=false;
+    let ratio=0;
 
-    // --- FULL DATABASE RESTORED ---
+    // --- DB ---
     const DB_COUNTRIES = [
         {c:"in",n:"India"},{c:"pk",n:"Pakistan"},{c:"us",n:"USA"},{c:"gb",n:"UK"},{c:"sa",n:"Saudi Arabia"},{c:"ae",n:"UAE"},
         {c:"af",n:"Afghanistan"},{c:"bd",n:"Bangladesh"},{c:"cn",n:"China"},{c:"tr",n:"Turkey"},{c:"ru",n:"Russia"},{c:"de",n:"Germany"},
@@ -285,10 +357,10 @@
     window.onload = () => { 
         setMode('tv'); 
         startNews();
+        startSportsTicker();
         renderPDF();
         
         let v = document.getElementById('video');
-        // FIX: Ensure logo hides only when playing
         v.addEventListener('playing', () => document.getElementById('logoOverlay').classList.add('hidden'));
         v.addEventListener('waiting', () => document.getElementById('logoOverlay').classList.remove('hidden'));
     };
@@ -306,10 +378,10 @@
         
         if(m==='tv') {
             renderCats();
-            document.getElementById('grid').innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Select Country for TV</div>';
+            document.getElementById('grid').innerHTML = '<div style="padding:40px; text-align:center; color:#666;">Select a Country from Sidebar</div>';
         } else {
-            document.getElementById('categories').innerHTML = ''; // Hide TV cats
-            document.getElementById('grid').innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Select Country for Radio</div>';
+            document.getElementById('categories').innerHTML = ''; 
+            document.getElementById('grid').innerHTML = '<div style="padding:40px; text-align:center; color:#666;">Select Country to Load Radio Stations</div>';
         }
         if(window.innerWidth < 768) toggleSidebar();
     }
@@ -325,10 +397,10 @@
         const l = document.getElementById('navList'); l.innerHTML = '';
         list.forEach(i => {
             let e = document.createElement('div'); e.className = 'nav-item s-item'; e.setAttribute('data-q', i.n.toLowerCase());
-            e.innerHTML = `<span class="fi fi-${i.c}"></span> ${i.n}`;
+            e.innerHTML = `<span class="fi fi-${i.c}"></span> <span>${i.n}</span>`;
             e.onclick = () => {
                 if(mode==='tv') loadTV(i.c, i.n);
-                else loadRadio(activeList==='countries'?i.c:i.n, i.n); // Fixed Radio Logic
+                else loadRadio(activeList==='countries'?i.c:i.n, i.n); 
                 if(window.innerWidth < 768) toggleSidebar();
             };
             l.appendChild(e);
@@ -345,26 +417,16 @@
         });
     }
 
-    // --- TV LOAD (Optimized) ---
+    // --- LOADING LOGIC ---
     async function loadTV(id, title, isCat=false) {
         setMeta("Loading...", title); 
         document.getElementById('logoOverlay').classList.remove('hidden');
         let url = isCat ? `https://iptv-org.github.io/iptv/categories/${id}.m3u` : `https://iptv-org.github.io/iptv/countries/${id}.m3u`;
-        
-        // SPEED FIX: Try direct first, fallback to proxy
+        let fetchUrl = cors ? `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` : url;
         try {
-            let res = await fetch(url);
-            if(!res.ok) throw new Error();
-            let txt = await res.text();
-            parseM3U(txt); setMeta(title, "Loaded");
-        } catch(e) {
-            try {
-                // Fallback to CORS proxy
-                let res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-                let txt = await res.text();
-                parseM3U(txt); setMeta(title, "Loaded via Proxy");
-            } catch(ex) { setMeta("Error", "Failed to Load"); }
-        }
+            let res = await fetch(fetchUrl); if(!res.ok) throw new Error();
+            let txt = await res.text(); parseM3U(txt); setMeta(title, "Live Channels");
+        } catch(e) { if(!cors) { toggleCors(); loadTV(id, title, isCat); } else { setMeta("Error", "Load Failed"); } }
     }
 
     function parseM3U(d) {
@@ -379,12 +441,10 @@
         renderGrid(channels, 'tv');
     }
 
-    // --- RADIO LOAD (API) ---
     async function loadRadio(code, name) {
         setMeta("Scanning...", name);
         let query = activeList==='countries' ? `countrycode=${code}` : `language=${name}`;
         let url = `https://de1.api.radio-browser.info/json/stations/search?${query}&limit=300&hidebroken=true&order=clickcount`;
-        
         try {
             let res = await fetch(url); let data = await res.json();
             renderGrid(data, 'radio'); setMeta(name, `${data.length} Stations`);
@@ -401,10 +461,13 @@
             let name = item.name || "Unknown";
             e.setAttribute('data-name', name.toLowerCase());
             let img = type==='tv' ? (item.logo||'') : (item.favicon||'');
-            let icon = type==='tv' ? 'fa-tv' : 'fa-music';
             let url = item.url || item.url_resolved; 
             
-            e.innerHTML = `<div class="c-img"><i class="fa-solid ${icon}" style="font-size:30px;color:#333;position:absolute;"></i><img src="${img}" onerror="this.style.display='none'"></div><div class="c-inf"><div>${name.substring(0,20)}</div></div>`;
+            // HOTSTAR STYLE CIRCULAR ICON
+            e.innerHTML = `
+                <div class="c-img"><img src="${img}" onerror="this.style.display='none'"></div>
+                <div class="c-inf">${name.substring(0,18)}</div>
+            `;
             e.onclick = () => { if(type==='tv') playChannel(url, name); else playRadio(url, name); };
             g.appendChild(e);
         });
@@ -413,20 +476,16 @@
     // --- PLAYERS ---
     function playChannel(url, name) {
         let v = document.getElementById('video');
-        document.getElementById('qualitySelect').style.display = 'none'; // Reset quality
+        document.getElementById('qualitySelect').style.display = 'none'; // Reset
         
         if (Hls.isSupported()) {
             if(hls) hls.destroy(); 
-            hls = new Hls({ enableWorker: true, lowLatencyMode: true }); // SPEED CONFIG
-            hls.loadSource(url); 
-            hls.attachMedia(v);
+            hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
             hls.on(Hls.Events.MANIFEST_PARSED, (e,d) => { 
                 v.play(); 
-                setupQuality(d.levels); // QUALITY FIX
+                setupQuality(d.levels); 
             });
-        } else if (v.canPlayType('application/vnd.apple.mpegurl')) { 
-            v.src = url; v.play(); 
-        }
+        } else if (v.canPlayType('application/vnd.apple.mpegurl')) { v.src = url; v.play(); }
         document.getElementById('metaTitle').innerText = name;
     }
 
@@ -438,9 +497,20 @@
         document.getElementById('metaTitle').innerText = name;
     }
 
-    // --- EXTRAS ---
+    // --- FEATURES ---
+    function setupQuality(levels) {
+        const sel = document.getElementById('qualitySelect');
+        if(levels && levels.length > 1) {
+            sel.innerHTML = '<option value="-1">Auto</option>';
+            levels.forEach((l,i) => sel.innerHTML += `<option value="${i}">${l.height}p</option>`);
+            sel.style.display = 'block';
+        } else sel.style.display = 'none';
+    }
+    function changeQuality(v) { if(hls) hls.currentLevel = parseInt(v); }
+    function toggleStats() { const s=document.getElementById('statsOverlay'); s.style.display = s.style.display==='none'?'block':'none'; if(s.style.display==='block') s.innerText=`Res: ${document.getElementById('video').videoWidth}p`; }
+
     function renderPDF() {
-        const tools = ["Merge PDF", "Split PDF", "Compress PDF", "Edit PDF", "Sign PDF", "Converter", "Images to PDF", "Protect PDF", "Unlock PDF", "Rotate PDF", "Crop PDF", "Extract Pages", "Sort Pages", "Webpage to PDF"];
+        const tools = ["Merge PDF", "Split PDF", "Compress PDF", "Edit PDF", "Sign PDF", "Converter", "Images to PDF", "Protect PDF", "Unlock PDF", "Rotate PDF", "Crop PDF"];
         const g = document.getElementById('pdfGrid');
         tools.forEach(t => {
             let e = document.createElement('div'); e.className = 'pdf-card';
@@ -467,22 +537,11 @@
     function openModal(id) { document.querySelectorAll('.modal').forEach(m=>m.classList.remove('active')); document.getElementById('modal-'+id).classList.add('active'); if(window.innerWidth<768) toggleSidebar(); }
     function closeModal() { document.querySelectorAll('.modal').forEach(m=>m.classList.remove('active')); }
     function reload() { let v=document.getElementById('video'); if(hls) hls.startLoad(); else v.load(); v.play(); }
-    function fit() { let v=document.getElementById('video'); v.style.objectFit = v.style.objectFit==='cover'?'contain':'cover'; }
+    function toggleRatio() { let v=document.getElementById('video'); v.style.objectFit = v.style.objectFit==='cover'?'contain':'cover'; }
     function filterNav() { let q=document.getElementById('sideSearch').value.toLowerCase(); document.querySelectorAll('.s-item').forEach(x=>x.style.display=x.getAttribute('data-q').includes(q)?'flex':'none'); }
     function filterGrid() { let q=document.getElementById('gridSearch').value.toLowerCase(); document.querySelectorAll('.card').forEach(x=>x.style.display=x.getAttribute('data-name').includes(q)?'flex':'none'); }
     function handleFile(i) { let f=i.files[0]; if(!f)return; let u=URL.createObjectURL(f); if(f.name.endsWith('.m3u')){let r=new FileReader();r.onload=e=>parseM3U(e.target.result);r.readAsText(f);}else{playChannel(u,f.name);} }
-    function loadLink() { let u=document.getElementById('extUrl').value; if(u.endsWith('.m3u')) loadTV(u,'External',false); else playChannel(u,'Stream'); }
-    
-    // QUALITY LOGIC (RESTORED)
-    function setupQuality(levels) {
-        const sel = document.getElementById('qualitySelect');
-        if(levels && levels.length > 1) {
-            sel.innerHTML = '<option value="-1">Auto</option>';
-            levels.forEach((l,i) => sel.innerHTML += `<option value="${i}">${l.height}p</option>`);
-            sel.style.display = 'block';
-        } else sel.style.display = 'none';
-    }
-    function changeQuality(v) { if(hls) hls.currentLevel = parseInt(v); }
+    function loadExt() { let u=document.getElementById('extUrl').value; if(u.endsWith('.m3u')) loadTV(u,'External',false); else playChannel(u,'Stream'); }
     function toggleBoost() {
         const v = document.getElementById('video');
         if(!audioCtx) { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); source = audioCtx.createMediaElementSource(v); gainNode = audioCtx.createGain(); source.connect(gainNode); gainNode.connect(audioCtx.destination); }
@@ -492,16 +551,27 @@
     async function togglePiP() { if(document.pictureInPictureElement) await document.exitPictureInPicture(); else await document.getElementById('video').requestPictureInPicture(); }
     function takeSnap() { const v=document.getElementById('video'); const c=document.createElement('canvas'); c.width=v.videoWidth; c.height=v.videoHeight; c.getContext('2d').drawImage(v,0,0); const a=document.createElement('a'); a.download='snap.png'; a.href=c.toDataURL(); a.click(); }
 
-    // --- NEWS ---
+    // --- NEWS & SPORTS ---
     async function startNews() { updateNews(); setInterval(updateNews, 300000); }
     async function updateNews() {
         try {
             let res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml');
             let data = await res.json();
             document.getElementById('worldTicker').innerText = data.items.map(i=>`• ${i.title}`).join(' ');
-            document.getElementById('kashmirTicker').innerText = "• ⚠️ J&K LIVE: Srinagar Cold Wave • Traffic on NH-44 Normal • Schools Reopen in Valley • Contact us for Live Reporting •";
+            document.getElementById('kashmirTicker').innerText = "• ⚠️ J&K LIVE: Cold Wave in Valley • Traffic on NH-44 Normal • Schools Reopen • Contact +91 7006686584 •";
         } catch(e) {}
     }
+    
+    async function startSportsTicker() {
+        try {
+            let res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://static.cricinfo.com/rss/livescores.xml');
+            let data = await res.json();
+            let txt = data.items.length ? data.items.map(i=>`🏏 ${i.title}`).join('  |  ') : "⚽ Live Football & Cricket Updates Soon...";
+            document.getElementById('sportsTicker').innerText = txt;
+        } catch(e) { document.getElementById('sportsTicker').innerText = "⚽ Live Sports Updates Loading..."; }
+    }
+    window.addEventListener('load', startSportsTicker);
+
 </script>
 </body>
 </html>
