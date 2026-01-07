@@ -1,499 +1,374 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DarTV - Mobile Scroll Fixed</title>
+    <title>DarTV - Speed & Quality</title>
     
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         /* --- RESET --- */
-        :root { --bg-body: #050505; --bg-side: #0a0a0a; --primary: #3b82f6; --accent: #dc2626; --border: 1px solid #222; }
+        :root { --bg: #050505; --side: #0a0a0a; --primary: #3b82f6; --accent: #dc2626; --border: 1px solid #222; }
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        
-        /* FIX: Use 100dvh for mobile to prevent scroll locking */
-        body { 
-            margin: 0; padding: 0; 
-            background: var(--bg-body); color: #fff; 
-            font-family: -apple-system, system-ui, sans-serif; 
-            height: 100vh; height: 100dvh; /* Dynamic Height */
-            display: flex; flex-direction: column; 
-            overflow: hidden; /* Prevent body scroll */
-        }
-        
-        .icon { width: 18px; height: 18px; fill: currentColor; }
+        body { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* --- TICKERS --- */
-        .ticker-top-box { height: 32px; background: #450a0a; border-bottom: 1px solid #333; display: flex; flex-shrink: 0; z-index: 200; }
-        .tt-label { background: #dc2626; color: white; font-size: 11px; font-weight: 900; padding: 0 10px; display: flex; align-items: center; box-shadow: 4px 0 10px rgba(0,0,0,0.5); z-index: 2; white-space: nowrap; }
-        .tt-text-wrap { flex: 1; overflow: hidden; position: relative; display: flex; align-items: center; }
-        .tt-text { white-space: nowrap; font-size: 13px; font-weight: 600; color: #fca5a5; display: inline-block; padding-left: 100%; animation: scroll 120s linear infinite; }
-        
-        .ticker-bot-box { height: 30px; background: #0c4a6e; border-top: 1px solid #333; border-bottom: 1px solid #333; display: flex; flex-shrink: 0; z-index: 10; }
-        .tb-label { background: #0284c7; color: white; font-size: 11px; font-weight: 900; padding: 0 10px; display: flex; align-items: center; z-index: 2; box-shadow: 4px 0 10px rgba(0,0,0,0.5); white-space: nowrap; }
-        .tb-text { white-space: nowrap; font-size: 13px; font-weight: 600; color: #bae6fd; display: inline-block; padding-left: 100%; animation: scroll 100s linear infinite; }
-        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .ticker-box { height: 30px; display: flex; flex-shrink: 0; z-index: 50; overflow: hidden; background: #111; border-bottom: 1px solid #333; }
+        .t-lbl { background: var(--accent); color: #fff; font-weight: 900; font-size: 11px; padding: 0 10px; display: flex; align-items: center; z-index: 2; box-shadow: 4px 0 10px #000; }
+        .t-blue { background: #0284c7; }
+        .t-wrap { flex: 1; position: relative; display: flex; align-items: center; overflow: hidden; }
+        .t-txt { white-space: nowrap; font-size: 13px; font-weight: 600; display: inline-block; padding-left: 100%; animation: scroll 35s linear infinite; color: #fca5a5; }
+        .tx-blue { color: #bae6fd; }
+        @keyframes scroll { 100% { transform: translateX(-100%); } }
 
-        /* --- APP STRUCTURE --- */
-        .app-body { 
-            flex: 1; 
-            display: flex; 
-            overflow: hidden; /* Crucial for keeping player sticky */
-            position: relative;
-        }
-        
-        /* SIDEBAR */
-        .sidebar { width: 280px; min-width: 280px; background: var(--bg-side); border-right: var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s ease; }
+        /* --- LAYOUT --- */
+        .app-body { flex: 1; display: flex; overflow: hidden; position: relative; }
+        .sidebar { width: 280px; min-width: 280px; background: var(--side); border-right: var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s; }
         .brand { padding: 15px; font-size: 24px; font-weight: 900; border-bottom: var(--border); display: flex; align-items: center; gap: 10px; background: #000; }
         .brand span { color: var(--primary); }
+
         .tools { padding: 10px; background: #111; border-bottom: var(--border); }
-        .cors-toggle { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; cursor: pointer; margin-bottom: 8px; }
-        .cors-toggle.active { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
-        .cors-indicator { width: 10px; height: 10px; background: #444; border-radius: 50%; }
-        .cors-toggle.active .cors-indicator { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
-        .cors-txt { font-size: 11px; color: #ccc; }
-        .tool-btn { width: 100%; background: #222; border: 1px solid #333; color: #ccc; padding: 8px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .ext-box { display: flex; gap: 5px; }
-        .ext-inp { flex: 1; background: #000; border: 1px solid #333; color: white; padding: 6px; border-radius: 4px; font-size: 12px; }
-        .ext-btn { background: var(--primary); border: none; color: white; padding: 0 10px; border-radius: 4px; cursor: pointer; }
+        .mode-row { display: flex; background: #000; border: 1px solid #333; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+        .mode-btn { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold; color: #777; transition: 0.2s; }
+        .mode-btn.active { background: var(--primary); color: #fff; }
+        .mode-btn:hover:not(.active) { background: #222; }
+
+        .btn-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        .tool-btn { flex: 1; background: #222; border: 1px solid #333; color: #ccc; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 11px; text-align: center; }
+        .tool-btn:hover { background: #333; color: #fff; }
+        
+        .cors-toggle { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; cursor: pointer; margin-bottom: 5px; }
+        .cors-ind { width: 8px; height: 8px; background: #444; border-radius: 50%; }
+
         .tabs { display: flex; border-bottom: var(--border); }
-        .tab { flex: 1; padding: 10px; background: transparent; color: #777; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; font-size: 12px; }
+        .tab { flex: 1; padding: 10px; background: transparent; color: #777; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; font-size: 11px; text-transform: uppercase; }
         .tab.active { color: white; border-bottom-color: var(--primary); background: #151515; }
-        .search { padding: 8px; border-bottom: var(--border); }
-        .search-inp { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; }
+        
+        .search-box { padding: 8px; border-bottom: var(--border); }
+        .inp { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 6px; border-radius: 4px; font-size: 11px; }
+        
         .nav-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .nav-item { padding: 10px 15px; border-bottom: 1px solid #1a1a1a; cursor: pointer; color: #ccc; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .nav-item:hover { background: #222; color: white; }
-        .nav-item.active { background: var(--primary); color: white; }
 
         /* --- MAIN AREA --- */
-        .main { 
-            flex: 1; 
-            display: flex; flex-direction: column; 
-            min-width: 0; background: #000; 
-            height: 100%; 
-            overflow: hidden; /* Fixes scroll bleeding */
-        }
-
-        /* PLAYER SECTION */
-        .player-section {
-            /* On mobile, limit height so browser section has space */
-            height: 60%; 
-            display: flex; flex-direction: column;
-            background: #000; 
-            position: relative; 
-            flex-shrink: 0; /* Prevents player from shrinking */
-            z-index: 50;
-        }
-
-        .video-wrapper {
-            flex: 1; position: relative;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; background: #000;
-        }
-
-        video { width: 100%; height: 100%; max-height: 100%; background: #000; }
-
-        .startup {
-            position: absolute; inset: 0; background: #000; z-index: 20;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s; pointer-events: none; opacity: 1;
-        }
+        .main { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
+        
+        /* PLAYER */
+        .player-stage { height: 55%; display: flex; flex-direction: column; position: relative; flex-shrink: 0; background: #000; }
+        .video-box { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        video { width: 100%; height: 100%; background: #000; }
+        
+        /* OVERLAYS (Logo & Viz) */
+        .overlay-center { position: absolute; inset: 0; background: #000; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; opacity: 1; pointer-events: none; }
+        .overlay-center.hidden { opacity: 0; }
         .big-logo { font-size: 40px; font-weight: 900; letter-spacing: -2px; margin-bottom: 10px; }
         .big-logo span { color: var(--primary); }
         .loader { width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
-        @keyframes spin { to {transform: rotate(360deg);} }
-
-        /* Stats Overlay */
-        .stats-overlay {
-            position: absolute; top: 10px; left: 10px; 
-            background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 4px;
-            font-family: monospace; font-size: 11px; color: #00ff00;
-            z-index: 30; pointer-events: none; display: none;
-        }
-
-        /* --- BROWSER --- */
-        .browser-section { 
-            flex: 1; 
-            display: flex; flex-direction: column; 
-            background: #050505; 
-            min-height: 0; /* Important for flex child scroll */
-            overflow: hidden;
-        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        /* Control Bar */
-        .controls { 
-            height: 45px; background: #111; border-bottom: var(--border); 
-            display: flex; align-items: center; padding: 0 10px; gap: 10px;
-            flex-shrink: 0;
-        }
-        .meta { display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 100px; }
+        .radio-viz { position: absolute; inset: 0; background: radial-gradient(circle, #222, #000); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 40; }
+        .viz-bars { display: flex; gap: 5px; height: 50px; align-items: flex-end; margin-top: 20px; }
+        .bar { width: 8px; background: var(--primary); animation: bounce 1s infinite; }
+        @keyframes bounce { 0%,100% { height: 10px; } 50% { height: 50px; } }
+
+        /* BROWSER */
+        .browser { flex: 1; display: flex; flex-direction: column; background: #050505; min-height: 0; }
+        .controls { height: 45px; background: #111; border-bottom: var(--border); display: flex; align-items: center; padding: 0 10px; gap: 10px; flex-shrink: 0; }
+        .meta { display: flex; align-items: center; gap: 8px; overflow: hidden; min-width: 100px; flex: 1; }
         .meta img { width: 24px; height: 24px; background: #222; border-radius: 3px; object-fit: contain; }
-        .meta-info { overflow: hidden; }
         .meta-info div:first-child { font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .meta-info div:last-child { font-size: 10px; color: var(--primary); }
         
-        .player-actions { 
-            display: flex; gap: 5px; margin-left: auto; 
-            overflow-x: auto; white-space: nowrap; 
-            padding-bottom: 2px; 
-        }
-        .act-btn { 
-            background: #222; border: 1px solid #333; color: #ccc; 
-            padding: 5px 8px; border-radius: 4px; cursor: pointer; 
-            font-size: 11px; display: inline-flex; align-items: center; gap: 4px; 
-            flex-shrink: 0; 
-        }
-        .act-btn:hover { background: #333; color: white; border-color: #555; }
-        .act-btn.active { color: #00ff00; border-color: #00ff00; }
+        .actions { display: flex; gap: 5px; }
+        .act-btn { background: #222; border: 1px solid #333; color: #ccc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .act-btn:hover { border-color: var(--primary); color: #fff; }
+        
+        .quality-select { background: #222; color: #fff; border: 1px solid #333; padding: 4px; border-radius: 4px; font-size: 11px; outline: none; cursor: pointer; display: none; }
 
-        .quality-select {
-            background: #222; color: #fff; border: 1px solid #333;
-            padding: 3px; border-radius: 4px; font-size: 11px;
-            outline: none; cursor: pointer; display: none;
-        }
-
-        .rail { padding: 8px; background: #0a0a0a; border-bottom: var(--border); display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+        .rail { padding: 8px; background: #0a0a0a; border-bottom: var(--border); display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
         .chip { padding: 4px 12px; background: #222; border: 1px solid #333; border-radius: 20px; font-size: 11px; color: #ccc; white-space: nowrap; cursor: pointer; flex-shrink: 0; }
-        .chip:hover { background: #333; color: white; }
-        
-        /* GRID SCROLL FIX */
-        .grid { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 10px; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
-            gap: 8px; 
-            align-content: start; 
-            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
-            overscroll-behavior: contain; /* Prevents scroll chaining to parent */
-        }
-        
+        .chip:hover { background: #333; color: #fff; border-color: var(--primary); }
+
+        .grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; align-content: start; }
         .card { background: #141414; border: 1px solid #222; border-radius: 6px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; height: 100px; position: relative; }
+        .card:hover { transform: translateY(-2px); border-color: var(--primary); }
         .c-img { flex: 1; background: radial-gradient(circle, #222, #000); display: flex; align-items: center; justify-content: center; position: relative; }
         .c-img img { max-width: 80%; max-height: 80%; object-fit: contain; z-index: 2; }
-        .fb { position: absolute; font-size: 20px; color: #333; z-index: 1; font-weight: 900; }
         .c-inf { height: 28px; padding: 0 6px; background: #1a1a1a; display: flex; align-items: center; justify-content: space-between; font-size: 10px; }
-        .fav { color: #444; } .fav.active { color: #eab308; }
 
-        /* --- MOBILE MEDIA QUERIES --- */
+        /* MODALS */
+        .modal { position: fixed; inset: 0; background: #050505; z-index: 2000; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .modal.active { display: flex; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .pdf-card { background: #111; padding: 15px; border: 1px solid #333; text-align: center; cursor: pointer; color: #ccc; border-radius: 6px; }
+        .pdf-card:hover { border-color: var(--primary); color: #fff; }
+
+        /* Mobile */
         @media (max-width: 768px) {
-            /* Stack Logic */
             .app-body { flex-direction: column; }
-            
-            /* Sidebar becomes overlay */
-            .sidebar { 
-                display: none; position: absolute; 
-                top: 0; left: 0; right: 0; bottom: 0; 
-                z-index: 999; height: 100%; width: 100%;
-                background: rgba(0,0,0,0.95);
-            }
-            .sidebar.mobile-open { display: flex; }
-            
-            /* Fix Player Height to 40% of Screen, List takes 60% */
-            .player-section { height: 40vh; flex-shrink: 0; }
-            .browser-section { flex: 1; height: 60vh; }
-            
-            /* Mobile Header */
-            .mobile-menu-btn { 
-                display: block !important; position: absolute; top: 2px; left: 2px; z-index: 300; 
-                background: rgba(0,0,0,0.5); color: #fff; padding: 6px 12px; font-size: 14px; border-radius: 4px;
-                border: 1px solid #444; cursor: pointer; font-weight: bold;
-            }
-            
-            .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 5px; }
-            .player-actions::-webkit-scrollbar { height: 0px; } 
+            .sidebar { display: none; position: absolute; top: 0; bottom: 0; left: 0; width: 85%; z-index: 999; background: #0a0a0a; box-shadow: 2px 0 10px #000; }
+            .sidebar.open { display: flex; }
+            .mob-btn { display: block !important; position: absolute; top: 5px; left: 5px; z-index: 300; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; border: 1px solid #fff; border-radius: 4px; }
+            .player-stage { height: 40vh; }
         }
-        .mobile-menu-btn { display: none; }
+        .mob-btn { display: none; }
 
     </style>
 </head>
 <body>
 
-<button class="mobile-menu-btn" onclick="toggleSidebar()">☰ MENU</button>
+<button class="mob-btn" onclick="toggleSidebar()">☰</button>
 
-<div class="ticker-top-box">
-    <div class="tt-label">J&K LIVE</div>
-    <div class="tt-text-wrap">
-        <div class="tt-text" id="kashmirTicker">Loading Live Updates...</div>
-    </div>
+<div class="ticker-box">
+    <div class="t-lbl">J&K LIVE</div>
+    <div class="t-wrap"><div class="t-txt" id="kashmirTicker">Loading Live Updates...</div></div>
 </div>
 
 <div class="app-body">
     <div class="sidebar" id="sidebar">
         <div class="brand">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3 .35 0 .69.07 1 .18V6h5v2h-3v7.03A3.003 3.003 0 0 1 11 18c-1.66 0-3-1.34-3-3z"/></svg>
             <div>DAR<span>TV</span></div>
-            <button onclick="toggleSidebar()" style="margin-left:auto; background:none; border:none; color:#fff; font-size: 20px;">✕</button>
+            <button onclick="toggleSidebar()" style="margin-left:auto; background:none; border:none; color:#fff; font-size: 18px;">✕</button>
         </div>
+
         <div class="tools">
-            <div class="cors-toggle" id="corsBtn" onclick="toggleCors()">
-                <span class="cors-txt">Unblock (CORS)</span>
-                <div class="cors-indicator"></div>
+            <div class="mode-row">
+                <div class="mode-btn active" id="btn-tv" onclick="setMode('tv')">📺 TV Mode</div>
+                <div class="mode-btn" id="btn-radio" onclick="setMode('radio')">📻 Radio Mode</div>
             </div>
-            <button class="tool-btn" onclick="window.open('https://drive.google.com/drive/folders/1T6cQGWCggMAuq6i2QfdJLEfkysyNeD4W','_blank')">Open My Drive</button>
-            <button class="tool-btn" onclick="document.getElementById('localFile').click()">Upload File</button>
-            <input type="file" id="localFile" style="display:none" accept=".m3u,.m3u8,.ts,.mp4,.mkv" onchange="handleFile(this)">
-            <div class="ext-box">
-                <input type="text" id="extUrl" class="ext-inp" placeholder="Link...">
-                <button class="ext-btn" onclick="loadExt()">GO</button>
+
+            <div class="btn-row">
+                <button class="tool-btn" onclick="openModal('music')">Music</button>
+                <button class="tool-btn" onclick="openModal('pdf')">PDF Tools</button>
+                <button class="tool-btn" onclick="openModal('info')">Contact</button>
+            </div>
+            
+            <div class="cors-toggle" onclick="toggleCors()"><span style="font-size:11px;">Unblock Stream</span><div class="cors-ind" id="corsInd"></div></div>
+            
+            <div class="btn-row">
+                <button class="tool-btn" onclick="document.getElementById('localFile').click()">Upload</button>
+                <button class="tool-btn" onclick="window.open('https://drive.google.com','_blank')">Drive</button>
+            </div>
+            <input type="file" id="localFile" style="display:none" onchange="handleFile(this)">
+            
+            <div class="btn-row">
+                <input type="text" id="linkIn" class="inp" placeholder="Paste Link...">
+                <button class="tool-btn" style="flex:0 0 40px;" onclick="loadLink()">GO</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="setTab('countries',this)">Countries</button>
+                <button class="tab" onclick="setTab('languages',this)">Langs</button>
             </div>
         </div>
-        <div class="tabs">
-            <button class="tab active" onclick="setTab('countries',this)">Countries</button>
-            <button class="tab" onclick="setTab('languages',this)">Languages</button>
-        </div>
-        <div class="search">
-            <input type="text" id="sideSearch" class="search-inp" placeholder="Search..." onkeyup="filterNav()">
+
+        <div class="search-box">
+            <input type="text" id="sideSearch" class="inp" placeholder="Search List..." onkeyup="filterNav()">
         </div>
         <div class="nav-list" id="navList"></div>
     </div>
 
     <div class="main">
-        
-        <div class="player-section">
-            <div class="video-wrapper">
-                <div class="stats-overlay" id="statsOverlay">Res: - | Speed: -</div>
-                <div class="startup" id="overlay">
+        <div class="player-stage">
+            <div class="video-box">
+                <div class="overlay-center" id="logoOverlay">
                     <div class="big-logo">DAR<span>TV</span></div>
                     <div class="loader"></div>
-                    <div style="margin-top:10px; color:#888; font-size:12px;">READY</div>
+                    <div style="color:#aaa; font-size:12px; margin-top:10px;">WAITING FOR SIGNAL</div>
                 </div>
+                
                 <video id="video" controls autoplay playsinline></video>
+                
+                <div id="radioViz" class="radio-viz">
+                    <i class="fa-solid fa-music" style="font-size:60px; color:var(--primary);"></i>
+                    <h2 id="radioName" style="color:#fff; margin-top:20px;">Playing Radio</h2>
+                    <div class="viz-bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+                </div>
             </div>
         </div>
 
-        <div class="ticker-bot-box">
-            <div class="tb-label">WORLD LIVE</div>
-            <div class="tt-text-wrap">
-                <div class="tb-text" id="worldTicker">Connecting...</div>
-            </div>
+        <div class="ticker-box" style="background:#0c4a6e; border-top:1px solid #333;">
+            <div class="t-lbl t-blue">WORLD</div>
+            <div class="t-wrap"><div class="t-txt tx-blue" id="worldTicker">Connecting...</div></div>
         </div>
 
-        <div class="browser-section">
+        <div class="browser">
             <div class="controls">
                 <div class="meta">
                     <img src="" id="metaImg" style="opacity:0">
-                    <div class="meta-info">
-                        <div id="metaTitle">DarTV Live</div>
-                        <div id="metaStat">Select Channel</div>
-                    </div>
+                    <div class="meta-info"><div id="metaTitle">DarTV Live</div><div id="metaStat">Ready</div></div>
                 </div>
-                <div class="player-actions">
+                <div class="actions">
                     <select id="qualitySelect" class="quality-select" onchange="changeQuality(this.value)"></select>
+                    
+                    <button class="act-btn" onclick="reload()">↻</button>
                     <button class="act-btn" onclick="toggleBoost()" id="boostBtn">🔊+</button>
                     <button class="act-btn" onclick="togglePiP()">📺</button>
-                    <button class="act-btn" onclick="toggleStats()">📶</button>
                     <button class="act-btn" onclick="takeSnap()">📷</button>
                     <button class="act-btn" onclick="toggleRatio()">⛶</button>
                 </div>
             </div>
+            
             <div class="rail" id="categories"></div>
-            <div class="grid" id="grid">
-                <div style="text-align:center; color:#666; margin-top:20px; grid-column:1/-1;">Select a Country/Language</div>
-            </div>
+            <input type="text" id="gridSearch" class="inp" placeholder="Search Grid..." onkeyup="filterGrid()" style="margin:5px 10px; width:auto; flex:1;">
+            <div class="grid" id="grid"></div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-info" class="modal">
+    <div class="modal-head"><h2>Contact Us</h2><button class="tool-btn" style="width:auto;" onclick="closeModal()">CLOSE</button></div>
+    <div style="background:#111; padding:20px; border-radius:8px; border:1px solid #333; max-width:600px; margin:0 auto;">
+        <p><strong>Mobile:</strong> +91 7006686584</p>
+        <p><strong>Email:</strong> darajazb@gmail.com</p>
+        <hr style="border-color:#333; margin:15px 0;">
+        <h3>Privacy Policy</h3>
+        <p style="color:#ccc; font-size:13px;">DarTV aggregates streams. We do not host content.</p>
+    </div>
+</div>
+
+<div id="modal-pdf" class="modal">
+    <div class="modal-head"><h2>PDF24 Tools</h2><button class="tool-btn" style="width:auto;" onclick="closeModal()">CLOSE</button></div>
+    <div class="pdf-grid" id="pdfGrid"></div>
+</div>
+
+<div id="modal-music" class="modal">
+    <div class="modal-head"><h2>Music Player</h2><button class="tool-btn" style="width:auto;" onclick="closeModal()">CLOSE</button></div>
+    <div style="text-align:center;">
+        <div style="width:150px; height:150px; background:#222; border-radius:50%; margin:0 auto 20px; border:4px solid #333;"></div>
+        <audio id="audioPlayer" controls style="width:100%; max-width:500px; margin-bottom:20px;"></audio>
+        <div style="display:flex; gap:5px; max-width:500px; margin:0 auto;">
+            <input type="text" id="musicLink" class="inp" placeholder="Paste Drive/MP3 Link...">
+            <button class="tool-btn" style="width:auto;" onclick="playMusic()">PLAY</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- VARIABLES ---
-    let hls = null; 
-    let channels=[], favorites=JSON.parse(localStorage.getItem('dartv_final_favs'))||[], activeTab='countries', cors=false;
-    let ratio=0;
-    // Advanced Vars
-    let audioCtx, source, gainNode;
-    let isBoosted = false;
+    // --- STATE ---
+    let hls = null;
+    let mode = 'tv'; 
+    let cors = false;
+    let activeList = 'countries';
+    let audioCtx, source, gainNode, isBoosted=false;
 
-    // --- FULL DATABASE ---
-    const DB = {
-        countries: [
-            {c:"af",n:"Afghanistan"},{c:"al",n:"Albania"},{c:"dz",n:"Algeria"},{c:"ad",n:"Andorra"},{c:"ao",n:"Angola"},
-            {c:"ar",n:"Argentina"},{c:"am",n:"Armenia"},{c:"au",n:"Australia"},{c:"at",n:"Austria"},{c:"az",n:"Azerbaijan"},
-            {c:"bd",n:"Bangladesh"},{c:"be",n:"Belgium"},{c:"ba",n:"Bosnia"},{c:"br",n:"Brazil"},{c:"bg",n:"Bulgaria"},
-            {c:"ca",n:"Canada"},{c:"cl",n:"Chile"},{c:"cn",n:"China"},{c:"co",n:"Colombia"},{c:"hr",n:"Croatia"},
-            {c:"cz",n:"Czech Rep"},{c:"dk",n:"Denmark"},{c:"eg",n:"Egypt"},{c:"fi",n:"Finland"},{c:"fr",n:"France"},
-            {c:"de",n:"Germany"},{c:"gr",n:"Greece"},{c:"hk",n:"Hong Kong"},{c:"hu",n:"Hungary"},{c:"is",n:"Iceland"},
-            {c:"in",n:"India"},{c:"id",n:"Indonesia"},{c:"ir",n:"Iran"},{c:"iq",n:"Iraq"},{c:"ie",n:"Ireland"},
-            {c:"il",n:"Israel"},{c:"it",n:"Italy"},{c:"jp",n:"Japan"},{c:"jo",n:"Jordan"},{c:"kz",n:"Kazakhstan"},
-            {c:"ke",n:"Kenya"},{c:"kw",n:"Kuwait"},{c:"lb",n:"Lebanon"},{c:"my",n:"Malaysia"},{c:"mx",n:"Mexico"},
-            {c:"ma",n:"Morocco"},{c:"np",n:"Nepal"},{c:"nl",n:"Netherlands"},{c:"nz",n:"New Zealand"},{c:"ng",n:"Nigeria"},
-            {c:"no",n:"Norway"},{c:"pk",n:"Pakistan"},{c:"ps",n:"Palestine"},{c:"ph",n:"Philippines"},{c:"pl",n:"Poland"},
-            {c:"pt",n:"Portugal"},{c:"qa",n:"Qatar"},{c:"ro",n:"Romania"},{c:"ru",n:"Russia"},{c:"sa",n:"Saudi Arabia"},
-            {c:"rs",n:"Serbia"},{c:"sg",n:"Singapore"},{c:"za",n:"South Africa"},{c:"kr",n:"South Korea"},{c:"es",n:"Spain"},
-            {c:"lk",n:"Sri Lanka"},{c:"se",n:"Sweden"},{c:"ch",n:"Switzerland"},{c:"sy",n:"Syria"},{c:"tw",n:"Taiwan"},
-            {c:"th",n:"Thailand"},{c:"tr",n:"Turkey"},{c:"ua",n:"Ukraine"},{c:"ae",n:"UAE"},{c:"gb",n:"UK"},
-            {c:"us",n:"USA"},{c:"vn",n:"Vietnam"},{c:"ye",n:"Yemen"}
-        ],
-        languages: [
-            {c:"urd",n:"Urdu"},{c:"kas",n:"Kashmiri"},{c:"hin",n:"Hindi"},{c:"eng",n:"English"},{c:"ara",n:"Arabic"},
-            {c:"spa",n:"Spanish"},{c:"fra",n:"French"},{c:"deu",n:"German"},{c:"rus",n:"Russian"},{c:"zho",n:"Chinese"},
-            {c:"por",n:"Portuguese"},{c:"ita",n:"Italian"},{c:"jpn",n:"Japanese"},{c:"tur",n:"Turkish"},{c:"kor",n:"Korean"},
-            {c:"vie",n:"Vietnamese"},{c:"tha",n:"Thai"},{c:"msa",n:"Malay"},{c:"ind",n:"Indonesian"},{c:"fas",n:"Persian"},
-            {c:"nld",n:"Dutch"},{c:"pol",n:"Polish"},{c:"ukr",n:"Ukrainian"},{c:"swe",n:"Swedish"},{c:"ben",n:"Bengali"},
-            {c:"tam",n:"Tamil"},{c:"tel",n:"Telugu"},{c:"mal",n:"Malayalam"},{c:"kan",n:"Kannada"},{c:"guj",n:"Gujarati"},
-            {c:"mar",n:"Marathi"},{c:"pan",n:"Punjabi"},{c:"kur",n:"Kurdish"},{c:"pus",n:"Pashto"}
-        ],
-        cats: [
-            {id:"news",n:"News"},{id:"sports",n:"Sports"},{id:"movies",n:"Movies"},{id:"music",n:"Music"},
-            {id:"kids",n:"Kids"},{id:"documentary",n:"Documentary"},{id:"comedy",n:"Comedy"},
-            {id:"auto",n:"Auto"},{id:"education",n:"Education"},{id:"business",n:"Business"},
-            {id:"weather",n:"Weather"},{id:"religious",n:"Religious"}
-        ]
-    };
+    // --- FULL DATABASE RESTORED ---
+    const DB_COUNTRIES = [
+        {c:"in",n:"India"},{c:"pk",n:"Pakistan"},{c:"us",n:"USA"},{c:"gb",n:"UK"},{c:"sa",n:"Saudi Arabia"},{c:"ae",n:"UAE"},
+        {c:"af",n:"Afghanistan"},{c:"bd",n:"Bangladesh"},{c:"cn",n:"China"},{c:"tr",n:"Turkey"},{c:"ru",n:"Russia"},{c:"de",n:"Germany"},
+        {c:"fr",n:"France"},{c:"ca",n:"Canada"},{c:"au",n:"Australia"},{c:"jp",n:"Japan"},{c:"ir",n:"Iran"},{c:"id",n:"Indonesia"},
+        {c:"br",n:"Brazil"},{c:"mx",n:"Mexico"},{c:"it",n:"Italy"},{c:"es",n:"Spain"},{c:"nl",n:"Netherlands"},{c:"za",n:"South Africa"},
+        {c:"lk",n:"Sri Lanka"},{c:"np",n:"Nepal"},{c:"ph",n:"Philippines"},{c:"th",n:"Thailand"},{c:"vn",n:"Vietnam"},{c:"kr",n:"South Korea"},
+        {c:"eg",n:"Egypt"},{c:"qa",n:"Qatar"},{c:"kw",n:"Kuwait"},{c:"om",n:"Oman"},{c:"bh",n:"Bahrain"},{c:"my",n:"Malaysia"},
+        {c:"sg",n:"Singapore"},{c:"nz",n:"New Zealand"},{c:"pt",n:"Portugal"},{c:"se",n:"Sweden"},{c:"ch",n:"Switzerland"},
+        {c:"no",n:"Norway"},{c:"dk",n:"Denmark"},{c:"fi",n:"Finland"},{c:"pl",n:"Poland"},{c:"ua",n:"Ukraine"},{c:"ro",n:"Romania"}
+    ];
+    
+    const DB_LANG = [
+        {c:"urd",n:"Urdu"},{c:"hin",n:"Hindi"},{c:"eng",n:"English"},{c:"ara",n:"Arabic"},{c:"kas",n:"Kashmiri"},
+        {c:"pan",n:"Punjabi"},{c:"ben",n:"Bengali"},{c:"tam",n:"Tamil"},{c:"mal",n:"Malayalam"},{c:"tel",n:"Telugu"},
+        {c:"spa",n:"Spanish"},{c:"fra",n:"French"},{c:"de",n:"German"},{c:"rus",n:"Russian"},{c:"zho",n:"Chinese"}
+    ];
+
+    const DB_CATS = [
+        {id:"news",n:"News"},{id:"sports",n:"Sports"},{id:"movies",n:"Movies"},{id:"music",n:"Music"},
+        {id:"kids",n:"Kids"},{id:"religious",n:"Religious"},{id:"documentary",n:"Documentary"},{id:"lifestyle",n:"Lifestyle"}
+    ];
 
     window.onload = () => { 
-        renderNav(); 
-        renderCats(); 
-        loadFavorites(); 
-        startNewsEngine();
+        setMode('tv'); 
+        startNews();
+        renderPDF();
+        
+        let v = document.getElementById('video');
+        // FIX: Ensure logo hides only when playing
+        v.addEventListener('playing', () => document.getElementById('logoOverlay').classList.add('hidden'));
+        v.addEventListener('waiting', () => document.getElementById('logoOverlay').classList.remove('hidden'));
     };
 
-    // --- PLAYER LOGIC (HLS NATIVE + ADVANCED) ---
-    function playChannel(ch) {
-        setMeta(ch.name, "Buffering..."); showLoader(true);
-        let m=document.getElementById('metaImg'); if(ch.logo){m.src=ch.logo;m.style.opacity=1;}else m.style.opacity=0;
-        let video = document.getElementById('video');
-        document.getElementById('qualitySelect').style.display = 'none';
-
-        if (Hls.isSupported()) {
-            if(hls) hls.destroy();
-            hls = new Hls();
-            hls.loadSource(ch.url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
-                video.play().catch(e=>console.log("Autoplay blocked"));
-                showLoader(false); setMeta(ch.name, "Live HD");
-                setupQualitySelector(data.levels);
-            });
-            hls.on(Hls.Events.ERROR, (e, data) => { if (data.fatal) setMeta(ch.name, "Stream Offline"); });
-            setInterval(() => { if(!video.paused) updateStats(); }, 1000);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = ch.url;
-            video.addEventListener('loadedmetadata', () => { video.play(); showLoader(false); setMeta(ch.name, "Live HD"); });
-        }
-        if(window.innerWidth < 768) toggleSidebar(); 
-    }
-
-    function playLocalVideo(url, name) {
-        setMeta(name, "Local File"); showLoader(true);
-        let v = document.getElementById('video');
-        if(hls) { hls.destroy(); hls=null; }
-        v.src = url; v.play(); showLoader(false);
-    }
-
-    // --- ADVANCED FEATURES ---
-    function setupQualitySelector(levels) {
-        const sel = document.getElementById('qualitySelect');
-        if (levels.length > 1) {
-            sel.innerHTML = '<option value="-1">Auto</option>';
-            levels.forEach((lvl, index) => {
-                const opt = document.createElement('option');
-                opt.value = index; opt.text = lvl.height + 'p';
-                sel.appendChild(opt);
-            });
-            sel.style.display = 'block';
-        } else { sel.style.display = 'none'; }
-    }
-    function changeQuality(levelIndex) { if(hls) hls.currentLevel = parseInt(levelIndex); }
-
-    function toggleBoost() {
-        const btn = document.getElementById('boostBtn');
-        const vid = document.getElementById('video');
-        if (!audioCtx) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            source = audioCtx.createMediaElementSource(vid);
-            gainNode = audioCtx.createGain();
-            source.connect(gainNode); gainNode.connect(audioCtx.destination);
-        }
-        if (!isBoosted) {
-            gainNode.gain.value = 2.0; isBoosted = true;
-            btn.classList.add('active');
+    // --- MODES ---
+    function setMode(m) {
+        mode = m;
+        document.getElementById('btn-tv').classList.toggle('active', m==='tv');
+        document.getElementById('btn-radio').classList.toggle('active', m==='radio');
+        
+        document.getElementById('video').style.display = m==='tv'?'block':'none';
+        document.getElementById('radioViz').style.display = m==='radio'?'flex':'none';
+        
+        setTab('countries', document.querySelector('.tab'));
+        
+        if(m==='tv') {
+            renderCats();
+            document.getElementById('grid').innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Select Country for TV</div>';
         } else {
-            gainNode.gain.value = 1.0; isBoosted = false;
-            btn.classList.remove('active');
+            document.getElementById('categories').innerHTML = ''; // Hide TV cats
+            document.getElementById('grid').innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Select Country for Radio</div>';
         }
+        if(window.innerWidth < 768) toggleSidebar();
     }
 
-    async function togglePiP() {
-        const vid = document.getElementById('video');
-        if (document.pictureInPictureElement) await document.exitPictureInPicture();
-        else if (document.pictureInPictureEnabled) await vid.requestPictureInPicture();
+    // --- SIDEBAR ---
+    function setTab(type, btn) {
+        activeList = type;
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); if(btn)btn.classList.add('active');
+        renderNav(type==='countries' ? DB_COUNTRIES : DB_LANG);
     }
 
-    function takeSnap() {
-        const vid = document.getElementById('video');
-        const canvas = document.createElement('canvas');
-        canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
-        canvas.getContext('2d').drawImage(vid, 0, 0);
-        const a = document.createElement('a');
-        a.download = 'capture.png'; a.href = canvas.toDataURL(); a.click();
-    }
-
-    function toggleStats() {
-        const s = document.getElementById('statsOverlay');
-        s.style.display = (s.style.display === 'none' || s.style.display === '') ? 'block' : 'none';
-    }
-    function updateStats() {
-        const vid = document.getElementById('video');
-        const s = document.getElementById('statsOverlay');
-        if(s.style.display === 'block') {
-            s.innerText = `Res: ${vid.videoWidth}x${vid.videoHeight} | Time: ${vid.currentTime.toFixed(0)}s`;
-        }
-    }
-
-    // --- UTILS ---
-    function toggleRatio() { ratio = (ratio + 1) % 3; document.getElementById('video').style.objectFit = ['contain', 'cover', 'fill'][ratio]; }
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); }
-    function setTab(m,b) { activeTab=m; document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderNav(); }
-    function toggleCors() { cors=!cors; document.getElementById('corsBtn').classList.toggle('active'); }
-    function loadExt() { let u=document.getElementById('extUrl').value.trim(); if(u) loadPlaylist(u,"External"); }
-    function handleFile(input) {
-        let file = input.files[0]; if (!file) return;
-        if (file.name.endsWith('.m3u') || file.name.endsWith('.m3u8')) {
-            let reader = new FileReader();
-            reader.onload = function(e) { parseM3U(e.target.result); setMeta("Local Playlist", `${channels.length} Channels`); };
-            reader.readAsText(file);
-        } else { playLocalVideo(URL.createObjectURL(file), file.name); }
-    }
-    function renderNav() {
-        const l=document.getElementById('navList'); l.innerHTML='';
-        let f=document.createElement('div'); f.className='nav-item'; f.innerHTML='<span style="color:gold">★</span> Favorites'; f.onclick=loadFavorites; l.appendChild(f);
-        let d=activeTab==='countries'?DB.countries:DB.languages;
-        d.forEach(i=>{
-            let e=document.createElement('div'); e.className='nav-item s-item'; e.setAttribute('data-q',i.n.toLowerCase());
-            let ic=activeTab==='countries'?`<span class="fi fi-${i.c}"></span>`:`<span>🌐</span>`;
-            e.innerHTML=`${ic} ${i.n}`;
-            e.onclick=()=>{ 
-                document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active');
-                let type=activeTab==='countries'?'countries':'languages';
-                loadPlaylist(`https://iptv-org.github.io/iptv/${type}/${i.c}.m3u`, i.n);
+    function renderNav(list) {
+        const l = document.getElementById('navList'); l.innerHTML = '';
+        list.forEach(i => {
+            let e = document.createElement('div'); e.className = 'nav-item s-item'; e.setAttribute('data-q', i.n.toLowerCase());
+            e.innerHTML = `<span class="fi fi-${i.c}"></span> ${i.n}`;
+            e.onclick = () => {
+                if(mode==='tv') loadTV(i.c, i.n);
+                else loadRadio(activeList==='countries'?i.c:i.n, i.n); // Fixed Radio Logic
                 if(window.innerWidth < 768) toggleSidebar();
             };
             l.appendChild(e);
         });
     }
+
     function renderCats() {
-        const r=document.getElementById('categories');
-        DB.cats.forEach(c=>{
-            let e=document.createElement('div'); e.className='chip'; e.innerText=c.n;
-            e.onclick=()=>{ loadPlaylist(`https://iptv-org.github.io/iptv/categories/${c.id}.m3u`, c.n); };
+        const r = document.getElementById('categories'); r.innerHTML = '';
+        if(mode !== 'tv') return;
+        DB_CATS.forEach(c => {
+            let e = document.createElement('div'); e.className = 'chip'; e.innerText = c.n;
+            e.onclick = () => loadTV(c.id, c.n, true);
             r.appendChild(e);
         });
     }
-    async function loadPlaylist(url, title, tryProxy=false) {
-        setMeta("Loading...", `Fetching ${title}`); showLoader(true);
-        let fetchUrl = (cors || tryProxy) ? `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` : url;
+
+    // --- TV LOAD (Optimized) ---
+    async function loadTV(id, title, isCat=false) {
+        setMeta("Loading...", title); 
+        document.getElementById('logoOverlay').classList.remove('hidden');
+        let url = isCat ? `https://iptv-org.github.io/iptv/categories/${id}.m3u` : `https://iptv-org.github.io/iptv/countries/${id}.m3u`;
+        
+        // SPEED FIX: Try direct first, fallback to proxy
         try {
-            let res = await fetch(fetchUrl); if(!res.ok) throw new Error(); let txt = await res.text(); parseM3U(txt); setMeta(title, `${channels.length} Channels`);
-        } catch(e) { if(!tryProxy && !cors) loadPlaylist(url, title, true); else { setMeta("Error", "Load Failed"); showLoader(false); } }
+            let res = await fetch(url);
+            if(!res.ok) throw new Error();
+            let txt = await res.text();
+            parseM3U(txt); setMeta(title, "Loaded");
+        } catch(e) {
+            try {
+                // Fallback to CORS proxy
+                let res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+                let txt = await res.text();
+                parseM3U(txt); setMeta(title, "Loaded via Proxy");
+            } catch(ex) { setMeta("Error", "Failed to Load"); }
+        }
     }
+
     function parseM3U(d) {
-        channels=[]; let lines=d.split('\n'), cur={};
+        let channels=[]; let lines=d.split('\n'), cur={};
         lines.forEach(l=>{
             l=l.trim();
             if(l.startsWith('#EXTINF:')) {
@@ -501,40 +376,131 @@
                 cur.name=n; cur.logo=logo?logo[1]:null;
             } else if(l.startsWith('http')) { cur.url=l; channels.push({...cur}); cur={}; }
         });
-        renderGrid(channels);
+        renderGrid(channels, 'tv');
     }
-    function renderGrid(lst) {
-        const g=document.getElementById('grid'); g.innerHTML=''; 
-        if(lst.length===0) { g.innerHTML='<div style="text-align:center;padding:20px;color:#666;">No channels found.</div>'; showLoader(false); return; }
-        let lim=lst.slice(0,500); 
-        lim.forEach(ch=>{
-            let isFav=favorites.some(f=>f.url===ch.url);
-            let e=document.createElement('div'); e.className='card';
-            e.innerHTML=`<div class="c-img"><div class="fb">TV</div><img src="${ch.logo||''}" onerror="this.style.display='none'"></div><div class="c-inf"><div>${ch.name.substring(0,18)}</div><div class="fav ${isFav?'active':''}">♥</div></div>`;
-            e.onclick=(ev)=>{ if(ev.target.classList.contains('fav')) toggleFav(ch); else playChannel(ch); };
+
+    // --- RADIO LOAD (API) ---
+    async function loadRadio(code, name) {
+        setMeta("Scanning...", name);
+        let query = activeList==='countries' ? `countrycode=${code}` : `language=${name}`;
+        let url = `https://de1.api.radio-browser.info/json/stations/search?${query}&limit=300&hidebroken=true&order=clickcount`;
+        
+        try {
+            let res = await fetch(url); let data = await res.json();
+            renderGrid(data, 'radio'); setMeta(name, `${data.length} Stations`);
+        } catch(e) { setMeta("Error", "Radio API Failed"); }
+    }
+
+    // --- GRID ---
+    function renderGrid(list, type) {
+        const g = document.getElementById('grid'); g.innerHTML = '';
+        if(!list.length) g.innerHTML = '<div style="padding:20px;text-align:center;">No items found.</div>';
+        
+        list.forEach(item => {
+            let e = document.createElement('div'); e.className = 'card';
+            let name = item.name || "Unknown";
+            e.setAttribute('data-name', name.toLowerCase());
+            let img = type==='tv' ? (item.logo||'') : (item.favicon||'');
+            let icon = type==='tv' ? 'fa-tv' : 'fa-music';
+            let url = item.url || item.url_resolved; 
+            
+            e.innerHTML = `<div class="c-img"><i class="fa-solid ${icon}" style="font-size:30px;color:#333;position:absolute;"></i><img src="${img}" onerror="this.style.display='none'"></div><div class="c-inf"><div>${name.substring(0,20)}</div></div>`;
+            e.onclick = () => { if(type==='tv') playChannel(url, name); else playRadio(url, name); };
             g.appendChild(e);
         });
-        showLoader(false);
     }
-    function setMeta(t,s){ document.getElementById('metaTitle').innerText=t; document.getElementById('metaStat').innerText=s; }
-    function showLoader(b){ document.getElementById('overlay').style.opacity=b?1:0; document.getElementById('overlay').style.pointerEvents=b?'auto':'none'; }
-    function toggleFav(c){ let i=favorites.findIndex(f=>f.url===c.url); if(i>-1)favorites.splice(i,1); else favorites.push(c); localStorage.setItem('dartv_final_favs',JSON.stringify(favorites)); renderGrid(channels); }
-    function loadFavorites(){ channels=favorites; renderGrid(favorites); setMeta("Favorites",`${favorites.length} Saved`); }
-    function filterNav(){ let q=document.getElementById('sideSearch').value.toLowerCase(); document.querySelectorAll('.s-item').forEach(x=>{ x.style.display=x.getAttribute('data-q').includes(q)?'flex':'none'; }); }
-    async function startNewsEngine() { updateWorldNews(); updateKashmirNews(); setInterval(updateWorldNews, 300000); setInterval(updateKashmirNews, 300000); }
-    async function updateWorldNews() {
-        try {
-            const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml');
-            const data = await res.json();
-            if(data.status === 'ok') document.getElementById('worldTicker').innerText = `🔴 LIVE: ${data.items.slice(0,8).map(i=>`• ${i.title.toUpperCase()}`).join(' ')}`;
-        } catch(e) { document.getElementById('worldTicker').innerText = "🔴 LIVE: Global News Feed Connecting..."; }
+
+    // --- PLAYERS ---
+    function playChannel(url, name) {
+        let v = document.getElementById('video');
+        document.getElementById('qualitySelect').style.display = 'none'; // Reset quality
+        
+        if (Hls.isSupported()) {
+            if(hls) hls.destroy(); 
+            hls = new Hls({ enableWorker: true, lowLatencyMode: true }); // SPEED CONFIG
+            hls.loadSource(url); 
+            hls.attachMedia(v);
+            hls.on(Hls.Events.MANIFEST_PARSED, (e,d) => { 
+                v.play(); 
+                setupQuality(d.levels); // QUALITY FIX
+            });
+        } else if (v.canPlayType('application/vnd.apple.mpegurl')) { 
+            v.src = url; v.play(); 
+        }
+        document.getElementById('metaTitle').innerText = name;
     }
-    async function updateKashmirNews() {
+
+    function playRadio(url, name) {
+        let v = document.getElementById('video'); 
+        if(hls) { hls.destroy(); hls=null; }
+        v.src = url; v.play();
+        document.getElementById('radioName').innerText = name;
+        document.getElementById('metaTitle').innerText = name;
+    }
+
+    // --- EXTRAS ---
+    function renderPDF() {
+        const tools = ["Merge PDF", "Split PDF", "Compress PDF", "Edit PDF", "Sign PDF", "Converter", "Images to PDF", "Protect PDF", "Unlock PDF", "Rotate PDF", "Crop PDF", "Extract Pages", "Sort Pages", "Webpage to PDF"];
+        const g = document.getElementById('pdfGrid');
+        tools.forEach(t => {
+            let e = document.createElement('div'); e.className = 'pdf-card';
+            e.innerHTML = `<i class="fa-solid fa-file-pdf"></i><br>${t}`;
+            e.onclick = () => window.open(`https://tools.pdf24.org/en/${t.toLowerCase().replace(/ /g,'-')}`, '_blank');
+            g.appendChild(e);
+        });
+    }
+
+    function playMusic() {
+        let url = document.getElementById('musicLink').value;
+        if(url.includes('drive.google.com')) {
+            let id = url.match(/\/d\/(.+?)\//) || url.match(/id=(.+?)(&|$)/);
+            if(id) url = `https://docs.google.com/uc?export=download&id=${id[1]}`;
+        }
+        document.getElementById('audioPlayer').src = url;
+        document.getElementById('audioPlayer').play();
+    }
+
+    // --- UTILS ---
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    function toggleCors() { cors = !cors; document.getElementById('corsInd').style.background = cors ? '#0f0' : '#444'; }
+    function setMeta(t,s) { document.getElementById('metaTitle').innerText=t; document.getElementById('metaStat').innerText=s; }
+    function openModal(id) { document.querySelectorAll('.modal').forEach(m=>m.classList.remove('active')); document.getElementById('modal-'+id).classList.add('active'); if(window.innerWidth<768) toggleSidebar(); }
+    function closeModal() { document.querySelectorAll('.modal').forEach(m=>m.classList.remove('active')); }
+    function reload() { let v=document.getElementById('video'); if(hls) hls.startLoad(); else v.load(); v.play(); }
+    function fit() { let v=document.getElementById('video'); v.style.objectFit = v.style.objectFit==='cover'?'contain':'cover'; }
+    function filterNav() { let q=document.getElementById('sideSearch').value.toLowerCase(); document.querySelectorAll('.s-item').forEach(x=>x.style.display=x.getAttribute('data-q').includes(q)?'flex':'none'); }
+    function filterGrid() { let q=document.getElementById('gridSearch').value.toLowerCase(); document.querySelectorAll('.card').forEach(x=>x.style.display=x.getAttribute('data-name').includes(q)?'flex':'none'); }
+    function handleFile(i) { let f=i.files[0]; if(!f)return; let u=URL.createObjectURL(f); if(f.name.endsWith('.m3u')){let r=new FileReader();r.onload=e=>parseM3U(e.target.result);r.readAsText(f);}else{playChannel(u,f.name);} }
+    function loadLink() { let u=document.getElementById('extUrl').value; if(u.endsWith('.m3u')) loadTV(u,'External',false); else playChannel(u,'Stream'); }
+    
+    // QUALITY LOGIC (RESTORED)
+    function setupQuality(levels) {
+        const sel = document.getElementById('qualitySelect');
+        if(levels && levels.length > 1) {
+            sel.innerHTML = '<option value="-1">Auto</option>';
+            levels.forEach((l,i) => sel.innerHTML += `<option value="${i}">${l.height}p</option>`);
+            sel.style.display = 'block';
+        } else sel.style.display = 'none';
+    }
+    function changeQuality(v) { if(hls) hls.currentLevel = parseInt(v); }
+    function toggleBoost() {
+        const v = document.getElementById('video');
+        if(!audioCtx) { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); source = audioCtx.createMediaElementSource(v); gainNode = audioCtx.createGain(); source.connect(gainNode); gainNode.connect(audioCtx.destination); }
+        isBoosted = !isBoosted; gainNode.gain.value = isBoosted ? 3.0 : 1.0;
+        document.getElementById('boostBtn').style.color = isBoosted?'#0f0':'#ccc';
+    }
+    async function togglePiP() { if(document.pictureInPictureElement) await document.exitPictureInPicture(); else await document.getElementById('video').requestPictureInPicture(); }
+    function takeSnap() { const v=document.getElementById('video'); const c=document.createElement('canvas'); c.width=v.videoWidth; c.height=v.videoHeight; c.getContext('2d').drawImage(v,0,0); const a=document.createElement('a'); a.download='snap.png'; a.href=c.toDataURL(); a.click(); }
+
+    // --- NEWS ---
+    async function startNews() { updateNews(); setInterval(updateNews, 300000); }
+    async function updateNews() {
         try {
-            const w = await fetch('https://api.open-meteo.com/v1/forecast?latitude=34.08&longitude=74.79&current_weather=true').then(r=>r.json());
-            const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-            document.getElementById('kashmirTicker').innerText = `⚠️ TRAFFIC [${t}]: NH-44 Open • ❄️ SRINAGAR: ${w.current_weather.temperature}°C • 📢 LATEST: Schools open normal time.`;
-        } catch(e) { document.getElementById('kashmirTicker').innerText = "⚠️ J&K UPDATES: Loading data..."; }
+            let res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml');
+            let data = await res.json();
+            document.getElementById('worldTicker').innerText = data.items.map(i=>`• ${i.title}`).join(' ');
+            document.getElementById('kashmirTicker').innerText = "• ⚠️ J&K LIVE: Srinagar Cold Wave • Traffic on NH-44 Normal • Schools Reopen in Valley • Contact us for Live Reporting •";
+        } catch(e) {}
     }
 </script>
 </body>
